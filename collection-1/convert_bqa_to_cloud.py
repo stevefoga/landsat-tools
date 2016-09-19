@@ -1,19 +1,25 @@
 '''
 convert_bqa_to_cloud.py
 
+
 Purpose: Convert Landsat Collection 1 BQA to cloud Y/N band.
 
-Usage: python convert_bqa_to_cloud.py "/path/to/your/data/LC08_L1TP_033042_20130622_20160831_01_T1_BQA.TIF"
 
-Output: 8-bit GeoTIFF raster where 0 = cloud; 1 = not cloud. Output file example: 
-        /path/to/your/data/LC08_L1TP_033042_20130622_20160831_01_T1_BQA_cloud.tif
+Usage: python convert_bqa_to_cloud.py 
+        "/path/to/data/LC08_L1TP_033042_20130622_20160831_01_T1_BQA.TIF"
+
+
+Output: 8-bit GeoTIFF raster where 0 = cloud; 1 = not cloud. Output example: 
+        /path/to/data/LC08_L1TP_033042_20130622_20160831_01_T1_BQA_cloud.tif
+
 
 Reference: http://landsat.usgs.gov/collectionqualityband.php
+
 
 Author:   Steve Foga
 Contact:  steven.foga.ctr@usgs.gov
 Created:  09 September 2016
-Edited:   13 September 2016
+Edited:   19 September 2016
 ''' 
 import sys
 def qa_to_cloud(r_in):
@@ -56,7 +62,8 @@ def qa_to_cloud(r_in):
   nrow = r.RasterYSize
   
   ## create empty raster
-  target_ds = gdal.GetDriverByName('GTiff').Create(dir_out+fn_out, ncol, nrow, 1, gdal.GDT_Byte)
+  target_ds = gdal.GetDriverByName('GTiff').Create(dir_out+fn_out, ncol, nrow,
+                                                   1, gdal.GDT_Byte)
   
   ## set grid spatial reference
   target_ds.SetGeoTransform(r.GetGeoTransform())
@@ -75,9 +82,10 @@ def qa_to_cloud(r_in):
 if __name__ == "__main__":
   
   if len(sys.argv) != 2:
-    print("Not enough arguments. Required: /path/to/input_raster.tif")
-	print("Example use: python '/path/to/script/convert_bqa_to_cloud.py' '/path/to/your/input_raster.tif'")
-	sys.exit(1)
+    print('Not enough arguments. Required: /path/to/data/input_raster.tif')
+    print('Example use: python /path/to/script/convert_bqa_to_cloud.py\n' 
+	        '/path/to/data/input_raster.tif')
+    sys.exit(1)
   
   else:
     qa_to_cloud(sys.argv[1])

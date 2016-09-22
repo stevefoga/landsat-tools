@@ -359,20 +359,10 @@ def diag(input_gz):
   water_ptm = float(c_water_count) / float(c_count)
   print("% of clear water pixels: {0}".format(round(water_ptm * 100.0,4)))
   
-  if water_ptm >= 0.1:
-    water_bit = c_water_count
-  else:
-    water_bit = c_clear
-  
   ## clear land percentage
   land_ptm = float(c_land_count) / float(c_count)
   print("% of clear land pixels: {0}".format(round(land_ptm * 100,4)))
-  
-  if land_ptm >= 0.1:
-    land_bit = c_land_count
-  else:
-    land_bit = c_clear
-  
+    
 
   ############################################################################
   ## land thermal test
@@ -381,60 +371,61 @@ def diag(input_gz):
   if land_ptm >= 0.1:
     land_bt = therm[np.where((c_land == 1) & (sat != 1) 
                              & (fill.mask == False))]
+    
+    land_bit = c_land == 1
+  
   else:
     print("Less than 10% cloud-free land. Using all clear pixels instead.")
     land_bt = therm[np.where((cld == 0) & (sat != 1) & (fill.mask == False))]
 
-  if len(land_bt) > 0:
-    land_bt_min = np.amin(land_bt)
-    land_bt_max = np.amax(land_bt)
-  
-  else:
-    print("No cloud-free land pixels. Setting land_bt, min and max to 0.")
+    land_bit = cld == 0
+
+  if len(land_bt) == 0:
+    print("No cloud-free land pixels. Setting land_bt to 0.")
     land_bt = 0
-    land_bt_min = 0
-    land_bt_max = 0
+    #land_bt_min = 0
+    #land_bt_max = 0
   
   #print("Land brightness temp: {0}K".format(round(land_bt * 0.1,4)))
-  print("Min. land brightness temp: {0}K".format(round(land_bt_mini*0.1,4)))
-  print("Max. land brightness temp: {0}K".format(round(land_bt_max*0.1,4)))
+  #print("Min. land brightness temp: {0}K".format(round(land_bt_min*0.1,4)))
+  #print("Max. land brightness temp: {0}K".format(round(land_bt_max*0.1,4)))
   
   
   ## water thermal test
   ## make sure enough water for test (>=10%), otherwise use all clear pixels
   if water_ptm >= 0.1:
-    water_bt = therm[np.where((c_water == 1) & (sat != 1) 
+    water_bt = therm[np.where((c_water == 1) & (sat != 1)
                               & (fill.mask == False) )]
+
+    water_bit = c_water == 1
   else:
     print("Less than 10% cloud-free water. Using all clear pixels instead.")
     water_bt = therm[np.where((cld == 0) & (sat != 1) & (fill.mask == False))]
   
-  if len(water_bt) > 0:
-    water_bt_min = np.amin(water_bt)
-    water_bt_max = np.amax(water_bt)
-  
-  else:
-    print("No cloud-free water pixels. Setting water_bt, min and max to 0.")
+    water_bit = cld == 0
+
+  if len(water_bt) == 0:
+    print("No cloud-free water pixels. Setting water_bt to 0.")
     water_bt = 0
-    water_bt_min = 0
-    water_bt_max = 0
+    #water_bt_min = 0
+    #water_bt_max = 0
                                     
   #print("Water brightness temp: {0}K".format(round(water_bt * 0.1,4)))
-  print("Min. water brightness temp: {0}K".format(round(water_bt_min,4)))
-  print("Max. water brightness temp: {0}K".format(round(water_bt_max,4)))
+  #print("Min. water brightness temp: {0}K".format(round(water_bt_min*0.1,4)))
+  #print("Max. water brightness temp: {0}K".format(round(water_bt_max*0.1,4)))
   
 
   ############################################################################
   ## calculate temperature percentiles
   print("Calculating temperature percentiles...")
   t_templ = np.percentile(land_bt, 17.5) - 40
-  print("t_templ: {0}".format(t_templ))
+  print("t_templ: {0}".format(str(t_templ)))
   
   t_temph = np.percentile(land_bt, 82.5) + 40
-  print("t_temph: {0}".format(t_temph))
+  print("t_temph: {0}".format(str(t_temph)))
   
   t_wtemp = np.percentile(water_bt, 82.5)
-  print("t_wtemp: {0}".format(t_wtemp))
+  print("t_wtemp: {0}".format(str(t_wtemp)))
   
 
   ############################################################################
@@ -461,7 +452,7 @@ def diag(input_gz):
   w_p = brightness_prob * 100.0 
   
   ## mask out non-water pixels
-  wfinal_prob = np.ma.masked_where(all_water != 1, w_p)
+  wfinal_prob = np.ma.masked_where(r6 != 0, w_p)
   
   ## clean up
   w_p = None
@@ -471,9 +462,11 @@ def diag(input_gz):
 
   ## calculate cloud probability over land
   print("Calculating cloud probability over land...")
-  ndvi_land = ndvi[((all_land == 1) & (fill.mask == False))]
-  ndsi_land = ndsi[((all_land == 1) & (fill.mask == False))]
-  
+  #ndvi_land = ndvi[((r6 == 0) & (fill.mask == False))]
+  #ndsi_land = ndsi[((r6 == 0) & (fill.mask == False))]
+  ndvi_land = np.ma.masked_where(r6 == 0, ndvi)
+  ndsi_land = np.ma.masked_where(r6 == 0, ndsi)
+
   ## ndvi and ndsi should not be negative
   ndvi_land[ndvi_land < 0.0] = 0.0
   ndsi_land[ndsi_land < 0.0] = 0.0
@@ -483,12 +476,17 @@ def diag(input_gz):
   whiteness2 = (np.abs(blue - visi_mean2) + np.abs(green - visi_mean2) 
               + np.abs(red - visi_mean2)) / visi_mean2
 
-  whiteness2[(visi_mean2 == 0.0)] = 0.0
+  whiteness2[((visi_mean2 == 0.0) & (fill.mask == False))] = 0.0
   
-  whit_land = whiteness2[((all_land == 1) & (fill.mask == False))]
+  whit_land = np.ma.masked_where(r6 == 0, whiteness2)
+  #print("max of whit_land: {0}".format(np.amax(whit_land)))
+  #print("max of ndvi: {0}".format(np.amax(ndvi_land)))
+  #print("max of ndsi: {0}".format(np.amax(ndsi_land)))
 
-  vari_prob = 1.0 - (np.amax((abs(ndvi_land), abs(ndsi_land), whit_land)))
- 
+  #vari_prob = 1.0 - (np.amax((abs(ndvi_land), abs(ndsi_land), whit_land)))
+  vari_prob = 1.0 - np.max(np.dstack((abs(ndvi_land), abs(ndsi_land), 
+                                      whit_land)),axis=2)
+
   print("vari_prob: {0}".format(vari_prob))
 
   temp_prob = (t_temph - therm) / (t_temph - t_templ)
@@ -499,7 +497,7 @@ def diag(input_gz):
   f_p = vari_prob * 100.0
 
   ## mask out non-land pixels
-  final_prob = np.ma.masked_where(all_land != 1, f_p)
+  final_prob = np.ma.masked_where(r6 == 0, f_p)
 
   ## clean up
   f_p = None
@@ -507,25 +505,24 @@ def diag(input_gz):
   ndvi_land = None
   ndsi_land = None
   whit_land = None
- 
+  ndvi = None
+  ndsi = None
 
   ############################################################################
   ## calculate dynamic land cloud threshold
   print("Calculating dynamic land cloud threshold...")
-  min_land_prob = np.amin(final_prob[(fill.mask == False)])
-  max_land_prob = np.amax(final_prob[(fill.mask == False)])
-  print("min_land_prob: {0}".format(str(min_land_prob)))
-  print("max_land_prob: {0}".format(str(max_land_prob)))
+  
+  clr_mask = np.percentile(final_prob[((land_bit == True) & 
+                                       (fill.mask == False))], 82.5)
 
-  clr_mask = np.percentile((min_land_prob,max_land_prob), 82.5)
   print("clr_mask: {0}".format(clr_mask))
 
   ## calculate dynamic water cloud threshold
   print("Calculating dynamic water cloud threshold...")
-  min_water_prob = np.amin(wfinal_prob[(fill.mask == False)])
-  max_water_prob = np.amax(wfinal_prob[(fill.mask == False)])
   
-  wclr_mask = np.percentile((min_water_prob,max_water_prob), 82.5)
+  wclr_mask = np.percentile(wfinal_prob[((water_bit == True) &
+                                         (fill.mask == False))], 82.5)
+
   print("wclr_mask: {0}".format(wclr_mask)) 
 
 
@@ -538,50 +535,54 @@ def diag(input_gz):
   r7 = np.zeros(np.shape(blue), dtype="uint32")
 
   ## Note: all pixels passing test a will not be tested in subsequent tests
-  c_conf[np.where((therm < (t_templ - 31.0)) & (fill.mask == False))] = 3
+  c_conf[np.where((therm < (t_templ - 310.0)) & (fill.mask == False))] = 3
   
   ## 10,000,000 == test a passed (high conf.)
-  r7[np.where((therm < (t_templ - 31.0)) & (fill.mask == False))] = 10000000
+  r7[np.where((therm < (t_templ - 310.0)) & (fill.mask == False))] = 10000000
   
   
   ## b
   r8 = np.zeros(np.shape(blue), dtype="uint32")
-  c_conf[np.where((all_water == 1) & (wfinal_prob > wclr_mask) 
+  c_conf[np.where((r6 != 0) & (wfinal_prob > wclr_mask) 
                  & (cld == 1) & (fill.mask == False) & (r7 == 0))] = 3
     
   ## 100,000,000 == test b passed (high conf.)
-  r8[np.where((all_water == 1) & (wfinal_prob > wclr_mask) 
+  r8[np.where((r6 != 0) & (wfinal_prob > wclr_mask) 
              & (cld == 1) & (fill.mask == False) & (r7 == 0))] = 100000000
     
     
   ## c
   r9 = np.zeros(np.shape(blue), dtype="uint32")
-  c_conf[np.where((all_land == 1) & (final_prob > clr_mask) 
+  c_conf[np.where((r6 == 0) & (final_prob > clr_mask) 
                  & (cld == 1) & (fill.mask == False) & (r7 == 0))] = 3 
     
   ## 1,000,000,000 == test c passed (high conf.)
-  r9[np.where((all_land == 1) & (final_prob > clr_mask) 
+  r9[np.where((r6 == 0) & (final_prob > clr_mask) 
              & (cld == 1) & (fill.mask == False) & (r7 == 0))] = 1000000000
     
     
   ## d
   r10 = np.zeros(np.shape(blue), dtype="uint32")
-  c_conf[np.where((all_water == 1) & (wfinal_prob > wclr_mask - 10.0) 
-                 & (cld == 1) & (fill.mask == False) & (r7 == 0))] = 2
+  c_conf[np.where((r6 != 0) & (wfinal_prob > wclr_mask - 10.0) 
+                 & (cld == 1) & (fill.mask == False) & (r7 == 0)
+                 & (r8 == 0))] = 2
     
   ## 2 == test d passed (medium conf.)
-  r10[np.where((all_water == 1) & (wfinal_prob > wclr_mask - 10.0) 
-              & (cld == 1) & (fill.mask == False) & (r7 == 0))] = 2
+  r10[np.where((r6 != 0) & (wfinal_prob > wclr_mask - 10.0) 
+              & (cld == 1) & (fill.mask == False) & (r7 == 0)
+              & (r8 == 0))] = 2
   
 
   ## e
   r11 = np.zeros(np.shape(blue), dtype="uint32")
-  c_conf[np.where((all_land == 1) & (final_prob > clr_mask - 10.0) 
-                 & (cld == 1) & (fill.mask == False) & (r7 == 0))] = 3
+  c_conf[np.where((r6 == 0) & (final_prob > clr_mask - 10.0) 
+                 & (cld == 1) & (fill.mask == False) & (r7 == 0)
+                 & (r9 == 0))] = 2
     
   ## 20 == test e passed (high conf.)
-  r11[np.where((all_land == 1) & (final_prob > clr_mask - 10.0) 
-              & (cld == 1) & (fill.mask == False) & (r7 == 0))] = 20
+  r11[np.where((r6 == 0) & (final_prob > clr_mask - 10.0) 
+              & (cld == 1) & (fill.mask == False) & (r7 == 0)
+              & (r9 == 0))] = 20
   
 
   ## f
@@ -620,6 +621,8 @@ def diag(input_gz):
   fp_out = fpath + os.sep + l_id + "_prob.tif"
   fwp_out = fpath + os.sep + l_id + "_wprob.tif"
   cld_out = fpath + os.sep + l_id + "_cld.tif"
+  #ndvi_out = fpath + os.sep + l_id + "_ndvi.tif"
+  #ndvi_l = fpath + os.sep + l_id + "_ndvi_land.tif"
 
   ## destroy bands if they already exist
   del_file(fn_out)
@@ -628,6 +631,8 @@ def diag(input_gz):
   del_file(fwp_out)
   del_file(cld_out)
   del_file(whit_out)
+  #del_file(ndvi_out)
+  #del_file(ndvi_l)
   #del_file(red_out)
 
   ## get band dimensions & geotransform
@@ -650,7 +655,10 @@ def diag(input_gz):
                                                     gdal.GDT_Float32)
   #gc_ds = gdal.GetDriverByName('GTiff').Create(g_out, ncol, nrow, 1,
   #                                                  gdal.GDT_Float32)
-
+  #ndvi_ds = gdal.GetDriverByName('GTiff').Create(ndvi_out, ncol, nrow, 1,
+  #                                                  gdal.GDT_Float32)
+  #ndvi_l_ds = gdal.GetDriverByName('GTiff').Create(ndvi_l, ncol, nrow, 1,
+  #                                                  gdal.GDT_Float32)
 
   ## set grid spatial reference
   diag_ds.SetGeoTransform(geo_out.GetGeoTransform())
@@ -660,7 +668,9 @@ def diag(input_gz):
   cld_ds.SetGeoTransform(geo_out.GetGeoTransform())
   whit_ds.SetGeoTransform(geo_out.GetGeoTransform())
   #gc_ds.SetGeoTransform(geo_out.GetGeoTransform())
-  
+  #ndvi_ds.SetGeoTransform(geo_out.GetGeoTransform())
+  #ndvi_l_ds.SetGeoTransform(geo_out.GetGeoTransform())
+
   diag_ds.SetProjection(geo_out.GetProjection())
   conf_ds.SetProjection(geo_out.GetProjection())
   fp_ds.SetProjection(geo_out.GetProjection())
@@ -668,6 +678,8 @@ def diag(input_gz):
   cld_ds.SetProjection(geo_out.GetProjection())
   whit_ds.SetProjection(geo_out.GetProjection())
   #gc_ds.SetProjection(geo_out.GetProjection())
+  #ndvi_ds.SetProjection(geo_out.GetProjection())
+  #ndvi_l_ds.SetProjection(geo_out.GetProjection())
 
 
   ## get band
@@ -692,7 +704,8 @@ def diag(input_gz):
   #print("Writing visi_mean raster to {0}".format(g_out))
   #gc_ds.GetRasterBand(1).WriteArray(g_c)
 
-  
+  #ndvi_ds.GetRasterBand(1).WriteArray(ndvi)
+  #ndvi_l_ds.GetRasterBand(1).WriteArray(ndvi_land)
   ## close rasters
   diag_ds = None
   conf_ds = None
@@ -704,6 +717,8 @@ def diag(input_gz):
   fp_ds = None
   fwp_ds = None
   cld_ds = None
+  #ndvi_ds = None
+  #ndvi_l_ds = None
 
   ## clean up files
   print("Cleaning up input bands...\n\n")

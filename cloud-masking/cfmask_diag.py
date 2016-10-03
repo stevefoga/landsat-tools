@@ -178,7 +178,7 @@ def diag(input_gz):
 
   ## calculate indices
   print("Calculating spectral indices...")
-  ndvi = calc_si(red,nir)
+  ndvi = calc_si(nir,red)
   ndsi = calc_si(green,swir1)
   
     

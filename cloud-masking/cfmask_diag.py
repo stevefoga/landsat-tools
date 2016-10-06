@@ -48,19 +48,36 @@ Example usage:  python '/path/to/scripts/cfmask_diag.py'
 Author:   Steve Foga
 Contact:  steven.foga.ctr@usgs.gov
 Created:  14 September 2016
-Modified: 04 October 2016
+Modified: 06 October 2016
 Version:  0.1x
 
 
 Changelog:
   14-Sep-2016 - 0.1x - Original development.
-  DD-MMM-2016 - 1.0 - First correctly working version.
+  07-Oct-2016 - 1.0 - First correctly working version.
 
 
 Caveats/Known issues:
 
   A) May not match 100% with CFMask product contained in Landast Collection 1 
       BQA.
+
+
+Potential future work:
+
+  1) Add cirrus test option.
+  2) Add thermal disable option.
+  3) Add cloud probability toggle option (hard-coded at 22.5)
+  4) Add dilation for cloud; allow toggle of dilate buffer (hard-coded at 3)
+  5) Add cloud shadow; allow toggle of  dilate buffer (hard-coded at 3)
+
+
+Source:
+  
+  https://github.com/USGS-EROS/espa-cloud-masking/blob/master/cfmask/src/
+    a) potential_cloud_shadow_snow_mask.c
+    b) cfmask.c
+    c) misc.c
 
 '''
 ##############################################################################
@@ -209,6 +226,12 @@ def diag(input_gz):
   
     
   ############################################################################
+  ## set hard-coded variables
+  cloud_prob_threshold = 22.5
+  t_buffer = 400.0
+  
+
+  ############################################################################
   ## do tests
   print("Basic test (diag bit 0)...")
   
@@ -269,9 +292,10 @@ def diag(input_gz):
   cld[np.where((r1 == 10) & (whiteness >= 0.7) & (fill.mask == False))] = 0
 
   ## clean up variables that aren't used later
-  #whiteness = None
-  #visi_mean = None
-  #g_c = None
+  whiteness = None
+  visi_mean = None
+  g_c = None
+  
   print("# of pixels failing the whiteness test: {0}".format(
        np.sum((r1 == 10) & (whiteness >= 0.7) & (fill.mask == False))))
 
@@ -286,10 +310,10 @@ def diag(input_gz):
   n_c  = np.ma.masked_where(r1 != 10, nir)
   
   h1 = b_c - 0.5 * r_c  - 800.0
+  
   ## 1,000 == hot1 failed, pixel is still cloud
   r3[np.where((h1 > 0.0) & (sat == 0) & (fill.mask == False))] = 1000
-  #cld[np.where((h1 > 0.0) & (sat == 0) & (fill.mask == False))] = 1
-
+  
   ## remove cloud bit if hot1 failed
   cld[np.where((h1 <= 0.0) & (sat == 0) & (fill.mask == False))] = 0
   
@@ -297,20 +321,21 @@ def diag(input_gz):
   h2 = np.asfarray(n_c) / s1_c
   ## 10,000 == hot2 test failed, pixel still a cloud
   r4[np.where((fill.mask == False) & (h2 > 0.75))] = 10000
+  
   ## remove cloud bit if hot2 passed
   cld[np.where((s1_c != 0.0) & (h2 <= 0.75) & (fill.mask == False))] = 0
   
   ## clean up vars
   h1 = None
   h2 = None
-  #b_c = None
-  #r_c = None
+  b_c = None
+  r_c = None
   n_c = None
   s1_c = None
   
 
   ############################################################################
-  print("Basic snow test...")
+  print("Basic snow test (diag bit 5)...")
   r5 = np.zeros(np.shape(blue), dtype="uint32")
   snow = np.zeros(np.shape(blue), dtype="uint32")
   
@@ -325,7 +350,7 @@ def diag(input_gz):
   
   
   ############################################################################
-  print("Basic water test...")
+  print("Basic water test (diag bit 6)...")
   r6 = np.zeros(np.shape(blue), dtype="uint32")
   
   ## 1,000,000 = pixel is water
@@ -340,19 +365,13 @@ def diag(input_gz):
   print("Setting clear water and clear land bits...")
   c_land = np.zeros(np.shape(blue), dtype="uint32")
   c_water = np.zeros(np.shape(blue), dtype="uint32")
-  #all_land = np.zeros(np.shape(blue), dtype="uint32")
-  #all_water = np.zeros(np.shape(blue), dtype="uint32")
-
+  
   c_water[np.where((r6 != 0) & (cld == 0) & (fill.mask == False))] = 1
   c_land[np.where((r6 == 0) & (cld == 0) & (fill.mask == False))] = 1
   
-  #all_land[np.where((r6 != 0) & (fill.mask == False))] = 1
-  #all_water[np.where((r6 == 0) & (fill.mask == False))] = 1
-
   print("Counting clear bits, clear water bits, and clear lands bits...")
   
   ## determine number of clear pixels
-  #c_valid[np.where((cld == 0) & (fill.mask == False))] = 1
   c_clear = np.sum((cld == 0) & (fill.mask == False))
    
   ## determine number of valid pixels
@@ -418,6 +437,7 @@ def diag(input_gz):
                               & (fill.mask == False) )]
 
     water_bit = c_water == 1
+  
   else:
     print("Less than 10% cloud-free water. Using all clear pixels instead.")
     water_bt = therm[np.where((cld == 0) & (sat != 1) & (fill.mask == False))]
@@ -427,21 +447,15 @@ def diag(input_gz):
   if len(water_bt) == 0:
     print("No cloud-free water pixels. Setting water_bt to 0.")
     water_bt = 0
-    #water_bt_min = 0
-    #water_bt_max = 0
-                                    
-  #print("Water brightness temp: {0}K".format(round(water_bt * 0.1,4)))
-  #print("Min. water brightness temp: {0}K".format(round(water_bt_min*0.1,4)))
-  #print("Max. water brightness temp: {0}K".format(round(water_bt_max*0.1,4)))
-  
+ 
 
   ############################################################################
   ## calculate temperature percentiles
   print("Calculating temperature percentiles...")
-  t_templ = np.percentile(land_bt, 17.5) - 400.0
+  t_templ = np.percentile(land_bt, 17.5) - t_buffer
   print("t_templ: {0}".format(str(t_templ)))
   
-  t_temph = np.percentile(land_bt, 82.5) + 400.0
+  t_temph = np.percentile(land_bt, 82.5) + t_buffer
   print("t_temph: {0}".format(str(t_temph)))
   
   t_wtemp = np.percentile(water_bt, 82.5)
@@ -449,12 +463,6 @@ def diag(input_gz):
   
 
   ############################################################################
-  #####
-  #####
-  ## TODO: fix final_prob and/or clr_mask
-  #####
-  #####
-  #####
   ## calculate cloud probability over water
   print("Calculating cloud probability over water...")
   
@@ -484,8 +492,6 @@ def diag(input_gz):
   ############################################################################
   ## calculate cloud probability over land
   print("Calculating cloud probability over land...")
-  #ndvi_land = ndvi[((r6 == 0) & (fill.mask == False))]
-  #ndsi_land = ndsi[((r6 == 0) & (fill.mask == False))]
   ndvi_land = np.ma.masked_where(r6 == 0, ndvi)
   ndsi_land = np.ma.masked_where(r6 == 0, ndsi)
 
@@ -504,11 +510,7 @@ def diag(input_gz):
   whiteness2[((sat == 1) & (fill.mask == False))] = 0.0
 
   whit_land = np.ma.masked_where(r6 == 0, whiteness2)
-  #print("max of whit_land: {0}".format(np.amax(whit_land)))
-  #print("max of ndvi: {0}".format(np.amax(ndvi_land)))
-  #print("max of ndsi: {0}".format(np.amax(ndsi_land)))
-
-  #vari_prob = 1.0 - (np.amax((abs(ndvi_land), abs(ndsi_land), whit_land)))
+  
   ## find maximum pixel value in each stack of pixels
   vari_prob = 1.0 - np.max(np.dstack((abs(ndvi_land), abs(ndsi_land), 
                                       whit_land)),axis=2)
@@ -544,7 +546,8 @@ def diag(input_gz):
   
   clr_mask = np.percentile(final_prob[((land_bit == True) & 
                                        (fill.mask == False))], 82.5)
-  #clr_mask = np.percentile(final_prob[(fill.mask == False)], 82.5)
+  
+  clr_mask = clr_mask + cloud_prob_threshold
 
   print("clr_mask: {0}".format(clr_mask))
 
@@ -553,7 +556,8 @@ def diag(input_gz):
   
   wclr_mask = np.percentile(wfinal_prob[((water_bit == True) &
                                          (fill.mask == False))], 82.5)
-  #wclr_mask = np.percentile(wfinal_prob[(fill.mask == False)], 82.5)
+  
+  wclr_mask = wclr_mask + cloud_prob_threshold
 
   print("wclr_mask: {0}".format(wclr_mask)) 
 
@@ -564,54 +568,61 @@ def diag(input_gz):
   c_conf = np.zeros(np.shape(blue), dtype="uint32")
   
   ## a
+  print("Confidence test a (diag bit 7)...")
   r7 = np.zeros(np.shape(blue), dtype="uint32")
 
   ## Note: all pixels passing test a will not be tested in subsequent tests
-  c_conf[np.where((therm < (t_templ - 3100.0)) & (fill.mask == False))] = 3
+  c_conf[np.where((therm < (t_templ + t_buffer - 3500.0)) & 
+                  (fill.mask == False))] = 3
   
   ## 10,000,000 == test a passed (high conf.)
-  r7[np.where((therm < (t_templ - 3100.0)) & (fill.mask == False))] = 10000000
+  r7[np.where((therm < (t_templ + t_buffer - 3500.0)) & 
+              (fill.mask == False))] = 10000000
   
   
   ## b
+  print("Confidence test b (diag bit 8)...")
   r8 = np.zeros(np.shape(blue), dtype="uint32")
   c_conf[np.where((r6 != 0) & (wfinal_prob > wclr_mask) 
                  & (cld == 1) & (fill.mask == False) & (r7 == 0))] = 3
     
-  ## 100,000,000 == test b passed (high conf.)
+  ## 100,000,000 == test b passed (high conf over water)
   r8[np.where((r6 != 0) & (wfinal_prob > wclr_mask) 
              & (cld == 1) & (fill.mask == False) & (r7 == 0))] = 100000000
     
     
   ## c
+  print("Confidence test c (diag bit 9)...")
   r9 = np.zeros(np.shape(blue), dtype="uint32")
   c_conf[np.where((r6 == 0) & (final_prob > clr_mask) 
                  & (cld == 1) & (fill.mask == False) & (r7 == 0))] = 3 
     
-  ## 1,000,000,000 == test c passed (high conf.)
+  ## 1,000,000,000 == test c passed (high conf over land)
   r9[np.where((r6 == 0) & (final_prob > clr_mask) 
              & (cld == 1) & (fill.mask == False) & (r7 == 0))] = 1000000000
     
     
   ## d
+  print("Confidence test d (diag bit 10)...")
   r10 = np.zeros(np.shape(blue), dtype="uint32")
   c_conf[np.where((r6 != 0) & (wfinal_prob > wclr_mask - 10.0) 
                  & (cld == 1) & (fill.mask == False) & (r7 == 0)
                  & (r8 == 0))] = 2
     
-  ## 2 == test d passed (medium conf.)
+  ## 2 == test d passed (medium conf over water)
   r10[np.where((r6 != 0) & (wfinal_prob > wclr_mask - 10.0) 
               & (cld == 1) & (fill.mask == False) & (r7 == 0)
               & (r8 == 0))] = 2
   
 
   ## e
+  print("Confidence test e (diag bit 11)...")
   r11 = np.zeros(np.shape(blue), dtype="uint32")
   c_conf[np.where((r6 == 0) & (final_prob > clr_mask - 10.0) 
                  & (cld == 1) & (fill.mask == False) & (r7 == 0)
                  & (r9 == 0))] = 2
     
-  ## 20 == test e passed (high conf.)
+  ## 20 == test e passed (high conf over land)
   r11[np.where((r6 == 0) & (final_prob > clr_mask - 10.0) 
               & (cld == 1) & (fill.mask == False) & (r7 == 0)
               & (r9 == 0))] = 20
@@ -625,12 +636,7 @@ def diag(input_gz):
   ############################################################################
   ## sum tests at end
   print("Summing test diagnostics...")
-  #if a_flag:
-  #  r_out = r0+r1+r2+r3+r4+r5+r6
-
-  #else:
   r_out = r0+r1+r2+r3+r4+r5+r6+r7+r8+r9+r10+r11
-  
   
   ## write band of summed tests
   print("Writing out data...")

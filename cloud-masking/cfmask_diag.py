@@ -283,47 +283,52 @@ def diag(input_gz):
   r2[np.where((r1 == 10) & (whiteness < 0.7) & (fill.mask == False))] = 100
   
   ## set cloud bit (to be read/modified in later tests)
-  cld[np.where((r1 == 10) & (fill.mask == False))] = 1
+  cld[np.where((r1 == 10) & (whiteness < 0.7) & (fill.mask == False))] = 100
   
   print("# of cloud pixels marked as cloud before whiteness test: {0}".
           format(np.sum(cld == 1)))
 
   ## set all other potential cloud pixels failing whiteness test back to 0
-  cld[np.where((r1 == 10) & (whiteness >= 0.7) & (fill.mask == False))] = 0
+  #cld[np.where((r1 == 10) & (whiteness >= 0.7) & (fill.mask == False))] = 0
 
   ## clean up variables that aren't used later
   whiteness = None
   visi_mean = None
   g_c = None
   
-  print("# of pixels failing the whiteness test: {0}".format(
-       np.sum((r1 == 10) & (whiteness >= 0.7) & (fill.mask == False))))
+  print("# of pixels failing the whiteness test: {0}".format(np.sum(
+                                   (cld == 0) & (fill.mask == False))))
 
   print("# of pixels still marked as cloud: {0}".format(np.sum(cld == 1)))
   
+  
   ############################################################################
   print("Haze optimized tests (diag bits 3&4)...")
+
   r3 = np.zeros(np.shape(blue), dtype="uint32")
   r4 = np.zeros(np.shape(blue), dtype="uint32")
   
-  s1_c = np.ma.masked_where(r1 != 10, swir1)
-  n_c  = np.ma.masked_where(r1 != 10, nir)
+  s1_c = np.ma.masked_where(cld != 1, swir1)
+  n_c  = np.ma.masked_where(cld != 1, nir)
   
   h1 = b_c - 0.5 * r_c  - 800.0
   
   ## 1,000 == hot1 failed, pixel is still cloud
-  r3[np.where((h1 > 0.0) & (sat == 0) & (fill.mask == False))] = 1000
+  r3[np.where((h1 > 0.0) & (sat == 0) & (cld == 1) & 
+              (fill.mask == False))] = 1000
   
   ## remove cloud bit if hot1 failed
-  cld[np.where((h1 <= 0.0) & (sat == 0) & (fill.mask == False))] = 0
+  cld[np.where((h1 <= 0.0) & (sat == 0) & (cld == 1) & 
+               (fill.mask == False))] = 0
   
 
   h2 = np.asfarray(n_c) / s1_c
   ## 10,000 == hot2 test failed, pixel still a cloud
-  r4[np.where((fill.mask == False) & (h2 > 0.75))] = 10000
+  r4[np.where((fill.mask == False) & (cld == 1) & (h2 > 0.75))] = 10000
   
   ## remove cloud bit if hot2 passed
-  cld[np.where((s1_c != 0.0) & (h2 <= 0.75) & (fill.mask == False))] = 0
+  cld[np.where((s1_c != 0.0) & (h2 <= 0.75) & (cld == 1) & 
+               (fill.mask == False))] = 0
   
   ## clean up vars
   h1 = None
@@ -544,16 +549,28 @@ def diag(input_gz):
   ## calculate dynamic land cloud threshold
   print("Calculating dynamic land cloud threshold...")
   
+  ## find min and max non-fill, non-cloud land pixels
+  #min_prob = np.min(final_prob[((land_bit == True) & (fill.mask == False))])
+  #max_prob = np.max(final_prob[((land_bit == True) & (fill.mask == False))])
+
   clr_mask = np.percentile(final_prob[((land_bit == True) & 
                                        (fill.mask == False))], 82.5)
-  
+  #clr_mask = np.percentile((min_prob,max_prob), 82.5)
+
   clr_mask = clr_mask + cloud_prob_threshold
 
   print("clr_mask: {0}".format(clr_mask))
 
+
   ## calculate dynamic water cloud threshold
   print("Calculating dynamic water cloud threshold...")
   
+  ## find min and max non-fill, non-cloud land pixels
+  #min_wprob = np.min(wfinal_prob[((land_bit == True) & 
+  #                               (fill.mask == False))])
+  #max_wprob = np.max(wfinal_prob[((land_bit == True) & 
+  #                               (fill.mask == False))])
+
   wclr_mask = np.percentile(wfinal_prob[((water_bit == True) &
                                          (fill.mask == False))], 82.5)
   

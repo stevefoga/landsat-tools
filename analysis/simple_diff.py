@@ -70,14 +70,6 @@ def do_diff(fn_mast,fn_test,mast_nodata):
   ## determine scene id
   fn = os.path.basename(fn_mast)
   s_id = fn
-  
-  '''
-  if fn[2] == '0': ## collection 1
-    s_id = fn[0:40]
-
-  else: ## pre-collection
-    s_id = fn[0:21]
-  '''
 
   ## print test file names to ensure they're the same...
   fnt = os.path.basename(fn_test)
@@ -108,7 +100,7 @@ def do_diff(fn_mast,fn_test,mast_nodata):
 
   subprocess.Popen(cmdout)
   
-  time.sleep(1)
+  time.sleep(1) ## lazy way to make sure command finishes
  
 
   ############################################################################
@@ -168,16 +160,23 @@ def do_diff(fn_mast,fn_test,mast_nodata):
   ## make histogram
   print("Making histogram...")
   plt.hist(diff[nodata.mask == False], 255)
+  
+  ## define histogram parameters
+  plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0)) ## force scinot
   plt.title(s_id + " Differences")
+  plt.xlabel("Value")
+  plt.ylabel("Frequency")
+  plt.grid(True)
 
   ## annotate plot with basic stats
   plt.annotate("mean diff: " + str(round(diff_mean,3)) + "\n" +
                "abs. mean diff: " + str(round(diff_abs_mean,3)) + "\n" +
                "# diff pixels: " + str(diff_npix) + "\n" +
                "% diff: " + str(pct_diff) + "\n",
-               xy=(0.7, 0.83),
+               xy=(0.7, 0.8),
                xycoords='axes fraction')
 
+  ## write figure out to PNG
   plt.savefig(dir_out + os.sep + s_id + "_diff_hist.png",
               bbox_inches = "tight",
               dpi = 350)
@@ -203,11 +202,11 @@ def do_diff(fn_mast,fn_test,mast_nodata):
   target_ds.SetProjection(m_o.GetProjection())
 
   ## define nodata value
-  diff[nodata.mask == True] = -9999
+  diff[nodata.mask == True] = int(mast_nodata)
   
   ## write array to target_ds
   target_ds.GetRasterBand(1).WriteArray(diff.data)
-  target_ds.GetRasterBand(1).SetNoDataValue(-9999)
+  target_ds.GetRasterBand(1).SetNoDataValue(int(mast_nodata))
   
   ## close file
   target_ds = None

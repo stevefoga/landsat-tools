@@ -283,7 +283,7 @@ def diag(input_gz):
   r2[np.where((r1 == 10) & (whiteness < 0.7) & (fill.mask == False))] = 100
   
   ## set cloud bit (to be read/modified in later tests)
-  cld[np.where((r1 == 10) & (whiteness < 0.7) & (fill.mask == False))] = 100
+  cld[np.where((r1 == 10) & (whiteness < 0.7) & (fill.mask == False))] = 1
   
   print("# of cloud pixels marked as cloud before whiteness test: {0}".
           format(np.sum(cld == 1)))

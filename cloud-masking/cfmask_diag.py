@@ -54,7 +54,7 @@ Version:  0.1x
 
 Changelog:
   14-Sep-2016 - 0.1x - Original development.
-  07-Oct-2016 - 1.0 - First correctly working version.
+  13-Oct-2016 - 0.2x - First correctly working version (still has output bugs)
 
 
 Caveats/Known issues:
@@ -123,8 +123,9 @@ def diag(input_gz):
       band_col['nir']   = [i for i in bands if "band4" in i][0]
       band_col['swir1'] = [i for i in bands if "band5" in i][0]
       band_col['swir2'] = [i for i in bands if "band7" in i][0]
-      band_col['therm'] = [i for i in bands if "band6" in i][0]
-      
+      band_col['therm'] = [i for i in bands if "band6." in i][0]
+      print("Thermal band: {0}".format(band_col['therm']))
+
     return(band_col)
 
   
@@ -244,9 +245,10 @@ def diag(input_gz):
 
   ## read thermal band (note it is scaled as [Celsius * 100])
   therm = ((read_bands(band_col['therm']) * 0.1) - 273.15) * 100
+  #therm = read_bands(band_col['therm'])
 
   ## Find pixels marekd as fill for all bands (output: mutual fill mask)
-  print("Determining fill mask for all bands...")
+  print("Determining fill mask based upon all input bands...")
   fill = min_bound(blue,green,red,nir,swir1,swir2,therm)
   
   ## calculate indices
@@ -333,32 +335,50 @@ def diag(input_gz):
   r3 = np.zeros(np.shape(fill), dtype="uint32")
   r4 = np.zeros(np.shape(fill), dtype="uint32")
   
-  #s1_c = np.ma.masked_where(cld != 1, swir1)
-  #n_c  = np.ma.masked_where(cld != 1, nir)
-  
+  ## hot1
   h1 = blue - 0.5 * red  - 800.0
   
   ## 1,000 == hot1 failed, pixel is still cloud
-  r3[np.where((h1 > 0.0) & (sat == 0) & (cld == 1) & 
-              (fill == False))] = 1000
+  r3[np.where(((cld == 1) & (fill == False) & (h1 > 0.0)) |
+            ((fill == False) & (sat == 1)))] = 1000
   
-  ## remove cloud bit if hot1 failed
-  cld[np.where((h1 <= 0.0) & (sat == 0) & (cld == 1) & 
-               (fill == False))] = 0
+  ## remove cloud bit if hot1 passed
+  cld[np.where((r3 != 1000) & (fill == False))] = 0
   
-
-  h2 = nir / swir1
+  
+  ## hot2
+  cld_swir = (cld == 1) & (swir1 != 0.0)
+  h2 = np.asfarray(nir) / np.asfarray(swir1)
   ## 10,000 == hot2 test failed, pixel still a cloud
-  r4[np.where((fill == False) & (cld == 1) & (h2 > 0.75))] = 10000
+  r4[np.where((fill == False) & (cld_swir == True) & (h2 > 0.75))] = 10000
   
   ## remove cloud bit if hot2 passed
-  cld[np.where((swir1 != 0.0) & (h2 <= 0.75) & (cld == 1) & 
-               (fill == False))] = 0
-  
+  cld[np.where((r4 != 10000) & (fill == False))] = 0
+  ## remove cloud bit if cld_swir == False
+  cld[np.where(cld_swir == False)] = 0
+
   ## clean up vars
   h1 = None
   h2 = None
   
+
+  ############################################################################
+  ## reserved location for cirrus test
+  '''
+  /* Cirrus cloud test */
+    if (use_cirrus)
+    {
+      if ((pixel_mask[pixel_index] & CF_CLOUD_BIT)
+         ||
+         (float)(input->buf[BI_CIRRUS][col] / 400.0 - 0.25)
+          > 0.0)
+      {
+          pixel_mask[pixel_index] |= CF_CLOUD_BIT;
+      }
+      else
+          pixel_mask[pixel_index] &= ~CF_CLOUD_BIT;
+    }
+  '''
 
   ############################################################################
   print("Basic snow test (diag bit 5)...")
@@ -373,7 +393,10 @@ def diag(input_gz):
   
   ## clean up vars
   snow = None
-  
+ 
+  ## remove cloud pixels that were identified as snow
+  cld[np.where((r5 != 0) & (fill == False))] = 0
+
   
   ############################################################################
   print("Basic water test (diag bit 6)...")
@@ -386,6 +409,9 @@ def diag(input_gz):
   
   print("No. of water pixels: {0}".format(np.sum(r6 == 1000000)))
   
+  ## remove cloud pixels that were identified as water
+  cld[np.where((r6 != 0) & (fill == False))] = 0
+
 
   ############################################################################
   print("Setting clear water and clear land bits...")
@@ -435,16 +461,21 @@ def diag(input_gz):
   ############################################################################
   ## land thermal test
   print("Calculating temperature statistics...")
+  
+  ## flag saturated pixels in thermal band
+  t_sat = therm == 20000
+  print("No of saturated thermal pixels: {0}".format(np.sum(t_sat == True)))
+  
   ## make sure enough land for test (>=10%), otherwise use all clear pixels
   if land_ptm >= 0.1:
-    land_bt = therm[np.where((c_land == 1) & (sat != 1) 
+    land_bt = therm[np.where((c_land == 1) & (t_sat == False) 
                              & (fill == False))]
     
     land_bit = c_land == 1
   
   else:
     print("Less than 10% cloud-free land. Using all clear pixels instead.")
-    land_bt = therm[np.where((cld == 0) & (sat != 1) & (fill == False))]
+    land_bt = therm[np.where((cld == 0) & (t_sat == False) & (fill == False))]
 
     land_bit = cld == 0
 
@@ -456,14 +487,15 @@ def diag(input_gz):
   ## water thermal test
   ## make sure enough water for test (>=10%), otherwise use all clear pixels
   if water_ptm >= 0.1:
-    water_bt = therm[np.where((c_water == 1) & (sat != 1)
-                              & (fill == False) )]
+    water_bt = therm[np.where((c_water == 1) & (t_sat == False)
+                              & (fill == False))]
 
     water_bit = c_water == 1
   
   else:
     print("Less than 10% cloud-free water. Using all clear pixels instead.")
-    water_bt = therm[np.where((cld == 0) & (sat != 1) & (fill == False))]
+    water_bt = therm[np.where((cld == 0) & (t_sat == False) & 
+                              (fill == False))]
   
     water_bit = cld == 0
 
@@ -492,8 +524,8 @@ def diag(input_gz):
   brightness_prob = swir1 / 1100.0
   
   ## clip brightness prob between 0.0 and 1.0
-  brightness_prob[brightness_prob < 0.0] = 0.0
-  brightness_prob[brightness_prob > 1.0] = 1.0
+  brightness_prob[np.where((brightness_prob < 0.0) & (fill == False))] = 0.0
+  brightness_prob[np.where((brightness_prob > 1.0) & (fill == False))] = 1.0
 
   wtemp_prob = (t_wtemp - therm) / 400.0
   wtemp_prob[np.where((wtemp_prob < 0.0) & (fill == False))] = 0.0
@@ -515,6 +547,9 @@ def diag(input_gz):
   ndsi_land = np.ma.masked_where(r6 == 0, ndsi)
 
   ## ndvi and ndsi should not be negative
+  #ndvi_land[ndvi_land == 0.0] = 0.01
+  #ndsi_land[ndsi_land == 0.0] = 0.01
+
   ndvi_land[ndvi_land < 0.0] = 0.0
   ndsi_land[ndsi_land < 0.0] = 0.0
 
@@ -523,26 +558,27 @@ def diag(input_gz):
   whiteness2 = (np.abs(blue - visi_mean2) + np.abs(green - visi_mean2) 
               + np.abs(red - visi_mean2)) / visi_mean2
 
-  whiteness2[((visi_mean2 == 0.0) & (fill == False))] = 0.0
+  ## zero out pixels where visi_mean2 == 0.0
+  whiteness2[np.where((visi_mean2 == 0.0) & (fill == False))] = 0.0
   
-  ## mask out saturation
-  whiteness2[((sat == 1) & (fill == False))] = 0.0
+  ## zero out saturated pixels
+  whiteness2[np.where((sat == 1) & (fill == False))] = 0.0
 
   whit_land = np.ma.masked_where(r6 == 0, whiteness2)
   
   ## find maximum pixel value in each stack of pixels
-  vari_prob = 1.0 - np.max(np.dstack((abs(ndvi_land), abs(ndsi_land), 
-                                      whit_land)),axis=2)
+  ## formula: vari_prob=1-max(max(abs(NDSI),abs(NDVI)),whiteness)
+  vi_max = np.max(np.dstack((abs(ndvi_land), abs(ndsi_land))), axis=2)
+  vari_prob = 1.0 - np.max(np.dstack((vi_max, whit_land)),axis=2)
 
   #print("vari_prob: {0}".format(vari_prob))
 
   temp_prob = (t_temph - therm) / (t_temph - t_templ)
-  temp_prob[np.where(temp_prob < 0.0)] = 0.0
+  temp_prob[np.where((temp_prob < 0.0) & (fill == False))] = 0.0
   
   vari_prob = vari_prob * temp_prob
   
   final_prob = vari_prob * 100.0
-
 
   ## clean up
   f_p = None

@@ -1,6 +1,7 @@
 '''
 generate_toa_bt.py
 
+
 Purpose: Generate TOA reflectance or Brightness Temperature from Level 1
           Landsat data. Works with pre-collection or Collection 1 data.
           
@@ -10,24 +11,26 @@ Purpose: Generate TOA reflectance or Brightness Temperature from Level 1
          ordering service to create this TOA and BT data.
 
          
-Inputs:
+Inputs:   1) Landsat Level-1 bands in .tar.gz archive
 
 
-Outputs:
+Outputs:  1) TOA bands in .tar.gz archive ([original_name]_toa.tar.gz]
 
 
 Example usage:
+  
+  python generate_toa_bt.py /path/to/your/dataset.tar.gz
 
 
 Author:   Steve Foga
 Contact:  steven.foga.ctr@usgs.gov
 Created:  19 October 2016
-Modified: 20 October 2016
+Modified: 24 October 2016
 
 
 Changelog:
 
-    XX October 2016 - Finished original version
+    24 October 2016 - Original working version.
 
     
 Source:
@@ -339,7 +342,7 @@ def gen_toa_bt(input_gz):
     ds = None
   
   
-  ## make .tar.gz with toa file(s)
+  ## function to make .tar.gz with toa file(s)
   def make_tarfile(output_filename, source_files):
     
     with tarfile.open(output_filename, "w:gz") as tar:
@@ -349,7 +352,7 @@ def gen_toa_bt(input_gz):
           tar.add(i, arcname=os.path.basename(i))  
   
   
-  ## clean up files
+  ## function to clean up files
   def del_file(a):
     
     try:
@@ -412,9 +415,6 @@ def gen_toa_bt(input_gz):
       band_col = band_by_sensor(True,bands)
     else:
       band_col = band_by_sensor(False,bands)
-  
-  ## read first file for geo params for output band
-  #geo_out = gdal.Open(bands[0],gdal.GA_ReadOnly)
   
   ## seperate thermal vs. optical bands
   therm_col = {}
@@ -500,6 +500,7 @@ def gen_toa_bt(input_gz):
     make_tarfile(output_gz, toa_out)
     
     print("File location: {0}".format(str(output_gz)))
+    
     
     ## clean up everything else (txt, tif, TIF, jpg, png)
     print("Cleaning up files...")

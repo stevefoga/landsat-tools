@@ -186,7 +186,7 @@ def diag(input_gz):
   def del_file(a):
     try:
       os.remove(a)
-    except OSError:
+    except (OSError, IndexError):
       pass
 
 
@@ -196,11 +196,13 @@ def diag(input_gz):
   ## untar files
   t_o = tarfile.open(input_gz,'r:gz')
   
-  print("Extracting files...")
-  
   try:
+    
+    print("Extracting to {0}...".format(os.path.dirname(input_gz)))
     t_o.extractall(path=os.path.dirname(input_gz))
+  
   except:
+    
     print("Problem extracting .tar.gz file {0}".format(input_gz))
     sys.exit(1)
   
@@ -840,9 +842,15 @@ def diag(input_gz):
   print("Cleaning up input bands...\n\n")
   for i in bands:
     del_file(i)
-
-  del_file(glob.glob(fpath + os.sep + "*.xml")[0])
   
+  ## use try/except here (xml doesn't always exist)
+  try:
+    del_file(glob.glob(fpath + os.sep + "*.xml")[0])
+  
+  except IndexError:
+    pass
+
+  ## stop timer 
   t1 = time.time()
   total = t1 - t0
   print("Done.")

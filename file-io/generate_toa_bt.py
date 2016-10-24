@@ -172,10 +172,18 @@ def gen_toa_bt(input_gz):
 
     return(geo_params)
 
+  
+  ## function to get TOA (spectral) radiance
+  def spec_rad(band, m_l, a_l):
+    
+    ## do calculation
+    s_rad = (float(m_l) * np.asfarray(band)) + a_l
+
+    return(s_rad)
 
 
   ## function to compute Brightness Temperature
-  def do_bt(band_in, k1, k2):
+  def do_bt(band_in, k1, k2, ml, al):
     
     ## read bands
     t_band = read_bands(band_in)
@@ -183,15 +191,18 @@ def gen_toa_bt(input_gz):
     ## mask out nodata
     mask_band = np.ma.masked_where(t_band == 0, t_band)
     
+    ## calculate spectral radiance
+    s_rad = spec_rad(t_band, ml, al)
+    
     ## calculate bt
-    btemp = float(k2) / np.log((float(k1)/np.asfarray(t_band)) + 1)
+    btemp = float(k2) / np.log((float(k1)/np.asfarray(s_rad)) + 1)
     
     btemp = np.ma.masked_where(mask_band == True, btemp)
 
     return(btemp)
     
     
-  ##
+  ## function to get multiplicative and additive rescaling refl. from MTL
   def toa_params(fn_in, mtl):
     
     ## get mp and ap with band numbers
@@ -207,20 +218,46 @@ def gen_toa_bt(input_gz):
     return(mult_b, add_b)
   
   
+  ## function to get multiplicative and additive rescaling radiance from MTL
+  def rad_params(fn_in, mtl):
+    
+    ## get ml and al with band numbers
+    mult_r = float(mtl["RADIANCE_MULT_BAND_" + get_band_no(fn_in)])
+    add_r = float(mtl["RADIANCE_ADD_BAND_" + get_band_no(fn_in)])
+
+    print("RADIANCE_MULT_BAND_{0}: {1}".format(str(get_band_no(fn_in)),
+                                               str(mult_r)))
+
+    print("RADIANCE_ADD_BAND_{0}: {1}".format(str(get_band_no(fn_in)),
+                                              str(add_r)))
+
+    return(mult_r, add_r)
+  
+
+  ## function to get K1 and K2 constants from MTL
   def bt_params(fn_in, mtl):
   
     if "B10" in fn_in:
       k1 = float(mtl['K1_CONSTANT_BAND_10'])
+      print("B10 K1: {0}".format(str(k1)))
+
       k2 = float(mtl['K2_CONSTANT_BAND_10'])
-      
+      print("B10 K2: {0}".format(str(k2)))
+
     elif "B11" in fn_in:
       k1 = float(mtl['K1_CONSTANT_BAND_11'])
+      print("B11 K1: {0}".format(str(k1)))
+
       k2 = float(mtl['K2_CONSTANT_BAND_11'])
-        
+      print("B11 K2: {0}".format(str(k2)))
+
     elif "B6." in fn_in:
       k1 = float(mtl['K1_CONSTANT_BAND_6'])
+      print("B6 K1: {0}".format(str(k1)))
+
       k2 = float(mtl['K2_CONSTANT_BAND_6'])
-        
+      print("B6 K2: {0}".format(str(k2)))
+
     else:
       print("Could not find thermal constants!")
       print("Operating on file {0}".format(str(i)))
@@ -228,7 +265,7 @@ def gen_toa_bt(input_gz):
         
     return(k1, k2)
   
-  
+ 
   ## function to compute TOA reflectance
   def do_toa(band_in, m_p, a_p, cos_sza):
     
@@ -424,12 +461,15 @@ def gen_toa_bt(input_gz):
   it = 0
   for i in therm_col:
   
+    ## get radiance params
+    ml, al = rad_params(therm_col[i], mtl)
+    
     ## get bt params
     k1, k2 = bt_params(therm_col[i], mtl)
     
     ## get bt
     #print(i)
-    bt_out = do_bt(therm_col[i], k1, k2)
+    bt_out = do_bt(therm_col[i], k1, k2, ml, al)
     
     ## rescale band
     bt_out = np.round(bt_out * 100, 0)

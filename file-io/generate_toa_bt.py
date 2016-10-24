@@ -65,6 +65,8 @@ def gen_toa_bt(input_gz):
                   'K2_CONSTANT_BAND',
                   'REFLECTANCE_MULT_BAND',
                   'REFLECTANCE_ADD_BAND',
+                  'RADIANCE_MULT_BAND',
+                  'RADIANCE_ADD_BAND',
                   'SUN_ELEVATION']
     
     ## open MTL file
@@ -472,7 +474,7 @@ def gen_toa_bt(input_gz):
     bt_out = do_bt(therm_col[i], k1, k2, ml, al)
     
     ## rescale band
-    bt_out = np.round(bt_out * 100, 0)
+    bt_out = np.round(bt_out * 10, 0)
     bt_out = bt_out.astype('int16')
     
     ## set nodata value

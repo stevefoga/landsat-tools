@@ -96,7 +96,10 @@ def gen_toa_bt(input_gz):
     
     try:
       
-      cos_sza = np.cos(90 - float(mtl['SUN_ELEVATION']))
+      cos_sza = np.cos(np.deg2rad(90 - float(mtl['SUN_ELEVATION'])))
+
+      print("SUN_ELEVATION: {0}".format(str(mtl['SUN_ELEVATION'])))
+      print("cosine sza: {0}".format(str(cos_sza)))
       
       return(cos_sza)
     
@@ -194,6 +197,12 @@ def gen_toa_bt(input_gz):
     ## get mp and ap with band numbers
     mult_b = float(mtl["REFLECTANCE_MULT_BAND_" + get_band_no(fn_in)])
     add_b =  float(mtl["REFLECTANCE_ADD_BAND_" + get_band_no(fn_in)])
+
+    print("REFLECTANCE_MULT_BAND_{0}: {1}".format(str(get_band_no(fn_in)),
+                                                  str(mult_b)))
+
+    print("REFLECTANCE_ADD_BAND_{0}: {1}".format(str(get_band_no(fn_in)),
+                                                 str(add_b)))
     
     return(mult_b, add_b)
   
@@ -230,7 +239,7 @@ def gen_toa_bt(input_gz):
     mask_band = np.ma.masked_where(o_band == 0, o_band)
     #print(type(mask_band))
     ## calculate toa
-    toar = (m_p * np.asfarray(o_band)) + a_p
+    toar = (float(m_p) * np.asfarray(o_band)) + a_p
     #print(type(toar))
     ## do sun angle correction
     toar = np.asfarray(toar) / float(cos_sza)
@@ -273,13 +282,16 @@ def gen_toa_bt(input_gz):
 
     ## create empty raster
     ds = gdal.GetDriverByName('GTiff').Create(fn_out, ncol, nrow, 1, 
-                                              gdal.GDT_UInt32)
+                                              gdal.GDT_Int16)
     
     ## set grid spatial reference
     ds.SetGeoTransform(geo_params.GetGeoTransform())
   
     ## set grid projection
     ds.SetProjection(geo_params.GetProjection())
+    
+    ## set nodata value
+    ds.GetRasterBand(1).SetNoDataValue(-9999)
     
     ## write band
     ds.GetRasterBand(1).WriteArray(data_out)

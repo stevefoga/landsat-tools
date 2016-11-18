@@ -6,17 +6,17 @@ Purpose: Diff two image files, and output diff image + statistics.
 
 
 Example use: python simple_diff_multi.py /path/to/data/image1.tif 
-              /path/to/data/image2.tif 255 '.tif' '.tif'
+              /path/to/data/image2.tif 255 '.png' '.jpg' '.xml' 
 
 
-Input: image_1 image_2 nodata_value ext_1 ext_2
+Input: image_1 image_2 nodata_value 
   
   Where:     
         image_1       = truth image
         image_2       = test image
         nodata_value  = no data value in truth image
-        ext_1         = file extension of truth image (e.g., '.tif')
-        ext_2         = file extension of test image (e.g., '.tif')
+        fn_ignore     = tuple of path(s)/wildcard(s) to exclude from diff
+
         
 Output: image_diff.tif, image_diff_hist.png, image_stats.csv
 
@@ -24,21 +24,44 @@ Output: image_diff.tif, image_diff_hist.png, image_stats.csv
 Author:   Steve Foga
 Contact:  steven.foga.ctr@usgs.gov
 Created:  19 September 2016
-Modified: 18 October 2016
+Modified: 04 November 2016
 
 
-Bash call example:
+Changelog
+  19 SEP 2016:  Original development.
+  18 OCT 2016:  First working version.
+  04 NOV 2016:  Added examples for extracting data,
+                removed extension requirement,
+                added ignore list option,
+                modified file matching logic to be more relaxed
 
+
+Prep work - extract files, keep in source dir structure:
+  
+  for i in ./*/*/*.gz; do tar -xzf $i --directory=$(dirname "${i}"); done
+
+
+Bash call example (only if calling files of similar extensions):
+  
   ias=(/path/to/data/*.ext1)
   espa=(/path/to/data/*.ext2)
 
   for ((i=0; i<=${#ias[@]}; i++)); do python simple_diff_multi.py ${espa[$i]} 
-    ${ias[$i]} -9999 '.tif' '.tif'; done
+    ${ias[$i]} -9999 '.txt' '.xml' '.jpg' '.png'); done
+
+
+List of almost always unwanted files:
+  
+  'png' 'jpg' 'hdf.img' 'xml' '.tar.gz' 'hdr' 'txt' 
+
+List of sometimes unwanted files:
+  
+  'qa', 'BQA' 'cfmask' 'clip'
 
 """
 ##############################################################################
 import sys
-def do_diff(fn_mast,fn_test,mast_nodata,ext_1,ext_2):
+def do_diff(fn_mast,fn_test,mast_nodata,*args):
   ## import libraries
   try:
     
@@ -71,10 +94,16 @@ def do_diff(fn_mast,fn_test,mast_nodata,ext_1,ext_2):
   ## function to get file names
   def get_fn(id_in):
     
-    id_o = id_in.split("_")[-2:]
-    id_out = id_o[0] + "_" + id_o[1]
-
-    return(id_out)
+    ## treat netcdf or hdf cases sepcial
+    if [x for x in ['.nc','.hdf'] if x in id_in]:
+      id_o = id_in.split(".")[-1]
+    
+    ## else just read the end of the filename
+    else:
+      id_o = id_in.split("_")[-1:]
+    #id_out = id_o[0] + "_" + id_o[1]
+    #return(id_out)
+    return(id_o)
 
 
   ############################################################################
@@ -181,7 +210,7 @@ def do_diff(fn_mast,fn_test,mast_nodata,ext_1,ext_2):
     diff_iqr      = diff_75 - diff_25
 
     try:
-      pct_diff = round((float(diff_npix) / tot_pix) * 100., 3)
+      pct_diff = round((float(diff_npix) / tot_pix) * 100., 6)
 
     except ZeroDivisionError:
       pct_diff = 100.0
@@ -189,32 +218,53 @@ def do_diff(fn_mast,fn_test,mast_nodata,ext_1,ext_2):
     
     ##########################################################################
     ## make histogram
-    print("Making histogram...")
-    try:
-      plt.hist(diff[nodata.mask == False], 255)
+    if diff_mean != 0.0:
+      print("Making histogram...")
+
+      try:
+        plt.hist(diff[nodata.mask == False], 255)
     
-      ## define histogram parameters
-      plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0)) ## scinot
-      plt.title(s_id + " Differences")
-      plt.xlabel("Value")
-      plt.ylabel("Frequency")
-      plt.grid(True)
+        ## define histogram parameters
+        plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0)) ## scinot
+        plt.title(s_id + " Differences")
+        plt.xlabel("Value")
+        plt.ylabel("Frequency")
+        plt.grid(True)
 
-      ## annotate plot with basic stats
-      plt.annotate("mean diff: " + str(round(diff_mean,3)) + "\n" +
-                  "abs. mean diff: " + str(round(diff_abs_mean,3)) + "\n" +
-                  "# diff pixels: " + str(diff_npix) + "\n" +
-                  "% diff: " + str(pct_diff) + "\n",
-                  xy=(0.7, 0.8),
-                  xycoords='axes fraction')
+        ## find source dir name (for printing output filename)
+        mast_path = os.path.dirname(fn_mast).split(os.sep)[-1] + os.sep +\
+                    os.path.basename(fn_mast)
+        test_path = os.path.dirname(fn_test).split(os.sep)[-1] + os.sep +\
+                    os.path.basename(fn_test)
+        
+        ## annotate plot with file names
+        plt.annotate(str(mast_path) + "\n" +
+                     str(test_path) + "\n",
+                     fontsize=5,
+                     xy=(0.01, 0.94),
+                     xycoords='axes fraction')
+        
+        ## annotate plot with basic stats
+        plt.annotate("mean diff: " + str(round(diff_mean,3)) + "\n" +
+                    "abs. mean diff: " + str(round(diff_abs_mean,3)) + "\n" +
+                    "# diff pixels: " + str(diff_npix) + "\n" +
+                    "% diff: " + str(pct_diff) + "\n",
+                    xy=(0.68, 0.8),
+                    xycoords='axes fraction')
 
-      ## write figure out to PNG
-      plt.savefig(dir_out + os.sep + s_id + "_diff_hist.png",
-                  bbox_inches = "tight",
-                  dpi = 350)
+        ## write figure out to PNG
+        plt.savefig(dir_out + os.sep + s_id + "_diff_hist.png",
+                    bbox_inches = "tight",
+                    dpi = 350)
 
-    except ValueError:
-      pass
+        ## sleep here (because plots only save partially)
+        time.sleep(0.5)
+
+        plt.close()
+
+      except ValueError:
+        plt.close()
+        pass
 
 
     ##########################################################################
@@ -277,9 +327,9 @@ def do_diff(fn_mast,fn_test,mast_nodata,ext_1,ext_2):
 
     ## write data
     writer.writerow((s_id,
-                     mast_band,
+                     mast_band[0],
                      fnt,
-                     test_band,
+                     test_band[0],
                      diff_npix,
                      tot_pix,
                      pct_diff,
@@ -313,11 +363,11 @@ def do_diff(fn_mast,fn_test,mast_nodata,ext_1,ext_2):
 if __name__ == "__main__":
   
   ## error out if not enough arguments
-  if len(sys.argv) != 6:
-    print("Incorrect number of arguments.")
+  if len(sys.argv) < 5:
+    print("Incorrect number of arguments: {0}.".format(str(len(sys.argv))))
     print('\nExample:\n python /path/to/scripts/simple_diff.py\n'
-          '/path/to/data/dir_1/ /path/to/data/dir_2/ nodata_value ext_1\n' 
-          'ext_2\n')
+          '/path/to/data/dir_1/ /path/to/data/dir_2/ nodata_value\n'
+          'ignore_values\n')
     sys.exit(1)
 
   else:
@@ -326,6 +376,7 @@ if __name__ == "__main__":
     import multiprocessing as mp
     import glob
     import os
+    import fnmatch
 
     ## find number of processors on system (minus one)
     proc = mp.cpu_count()-1
@@ -333,17 +384,47 @@ if __name__ == "__main__":
     ## start the processing pool
     pool = mp.Pool(processes=proc)
 
+
     ## find and sort the input files
-    masts = sorted(glob.glob(sys.argv[1]+os.sep+ "*" + os.sep + "*" + sys.argv[4]))
-    tests = sorted(glob.glob(sys.argv[2]+os.sep+ "*" + os.sep + "*" + sys.argv[5]))
+    def find_fns(dir_in, *ignore_list):
+       
+      ## format ignore_list as single list of values
+      igl = list(ignore_list)[0]
+      
+      ## allocate output file
+      fns_out = []
     
+      ## find all files, exclude non-testable files
+      for root, dirnames, filenames in os.walk(dir_in, igl):
+        
+        for filename in fnmatch.filter(filenames, '*'):
+          
+          if [x for x in igl if x in filename]:
+            pass
+          
+          else:
+            fns_out.append(os.path.join(root, filename))
+      
+      return(fns_out)
+     
+    print("Ignore list: {0}".format((sys.argv[3:])))
+
+    masts = sorted(find_fns(sys.argv[1], sys.argv[3:]))
+    tests = sorted(find_fns(sys.argv[2], sys.argv[3:]))
+
+    if len(masts) != len(tests):
+      print('WARNING: master and test directories do not have same number\n'
+            'of compoenents; results will not be consistent!\n')
+    
+    print(masts)
+    print(tests)
+
     ## for each master,test file...
     for i,j in zip(masts,tests):
  
       ## assign each pair of images to it's own job
       ## apply_async() allows a new job to enter as one finishes
-      r = pool.apply_async(do_diff, args=(i,j,sys.argv[3],sys.argv[4],sys.argv[5]))
+      r = pool.apply_async(do_diff, args=(i,j,sys.argv[3]))
     
     ## send the all the jobs out to be run
-    r.get()
-      
+    r.get() 

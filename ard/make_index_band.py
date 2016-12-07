@@ -105,9 +105,8 @@ def idx_band(dir_in, dir_out):
     it = it + 1
     
   ## create output filename from input bands
-  fnames = i.split(os.sep)[-1].split("_")
-  fn_out = dir_out + os.sep + fnames[0] + "_" + fnames[1] + "_" + fnames[3] +\
-           "_index.tif"
+  fnames = i.split(os.sep)[-1].split(".tif")[0]
+  fn_out = dir_out + os.sep + fnames + "_index.tif"
 
   ## write out grid to file
   ds = gdal.GetDriverByName('GTiff').Create(fn_out, ncol, nrow, 1, 

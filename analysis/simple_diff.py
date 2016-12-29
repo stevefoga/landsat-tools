@@ -29,6 +29,7 @@ def find_files(target_dir, ext):
 
     return out_files
 
+
 def get_fn(id_in):
     """Re-construct file names for the stats csv file.
 
@@ -40,6 +41,7 @@ def get_fn(id_in):
     id_out = id_o[0] + "_" + id_o[1]
 
     return id_out
+
 
 def do_cmp(fn_mast, fn_test, mast_nodata, dir_out, ignore_fn, skip_fr):
     """
@@ -74,7 +76,6 @@ def do_cmp(fn_mast, fn_test, mast_nodata, dir_out, ignore_fn, skip_fr):
     fn = os.path.basename(fn_mast)
     s_id = fn
 
-    ## print test file names to ensure they're the same...
     fnt = os.path.basename(fn_test)
 
     # get individual band names
@@ -137,7 +138,7 @@ def do_cmp(fn_mast, fn_test, mast_nodata, dir_out, ignore_fn, skip_fr):
 
     except ValueError:
         print(
-        "Array sizes do not match. Saving empty CSV to indicate this...")
+            "Array sizes do not match. Saving empty CSV to indicate this...")
 
         c_out = open(dir_out + os.sep + s_id + "_did_not_do_analysis.csv",
                      "wt")
@@ -313,8 +314,6 @@ if __name__ == "__main__":
     import os
 
     parser = argparse.ArgumentParser()
-
-    #parser.set_defaults(func=main)
 
     parser.add_argument('-m', action='store', dest='fn_mast', type=str,
                         help='Master directory of images.', required=True)

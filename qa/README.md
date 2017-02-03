@@ -2,7 +2,7 @@
 This QA software exists to provide reporting and statistical tools for comparing geospatial imagery generated with different software implementations.
 
 ## Overview
-The qa tool is designed to compare master (incumbent) and test (new) data to hightlight potential differences in file structure 
+The qa tool is designed to compare master (incumbent) and test (new) data to highlight potential differences in file structure 
 
 ## Requirements
 * Python 2.7.x/3.x or greater
@@ -28,7 +28,7 @@ The qa tool is designed to compare master (incumbent) and test (new) data to hig
 
 ## Features
 * Logging
-  * Compares text files line-by-line for differences, highlights new/modified lines in logfile
+  * Compares text files line-by-line for differences, highlights new/modified lines in log file
   * Logs file(s) that are different
   * Logs non-matching file names
   * Shows input, output actions in log file (--verbose only)

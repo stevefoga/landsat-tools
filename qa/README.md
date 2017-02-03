@@ -63,12 +63,15 @@ The qa tool is designed to compare master (incumbent) and test (new) data to hig
 
 * Examples
   * Histogram
+  
   <img src="https://github.com/stevefoga/landsat-tools/raw/master/qa/assets/LC08_L1TP_047027_20131014_20170117_01_T1_sr_band3.img_diff_0_hist.png" width="300">
 
   * Difference
+  
   <img src="https://github.com/stevefoga/landsat-tools/raw/master/qa/assets/LC08_L1TP_047027_20131014_20170117_01_T1_sr_band3.img_diff_0.png" width="300">
 
   * Absolute difference
+  
   <img src="https://github.com/stevefoga/landsat-tools/raw/master/qa/assets/LC08_L1TP_047027_20131014_20170117_01_T1_sr_band3.img_abs_diff_0.png" width="300">
 
 

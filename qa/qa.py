@@ -1,37 +1,45 @@
 """
 qa.py
 
-Purpose: perform QA on Landsat images and associated metadata output by the
-         Earth Resources Observation and Science (EROS) Science Processing
-         Architecture (ESPA; https://espa.cr.usgs.gov/.)
-         Extract and clean up data automatically.
-         Report results in logfile, CSV and graphical formats.
+Purpose: Perform QA on georeferenced images and associated metadata. Designed
+         originally to support the Earth Resources Observation and Science
+         (EROS) Science Processing Architecture
+         (ESPA; https://espa.cr.usgs.gov/.)
+         Extract and clean up data automatically (if necessary.)
+         Report results in logfile, CSV and plots.
 
 Author:   Steve Foga
 Contact:  steven.foga.ctr@usgs.gov
 Created:  21 December 2016
-Modified: 12 January 2017
+Modified: 02 February 2017
 
 Changelog:
     21 Dec 2016: Original development.
     12 Jan 2017: Fixed errors, formatting.
+    02 Feb 2017: Added switch for archived or non-archived inputs; modified
+                 stats output on plots; fixed nodata filtering for histograms;
+                 wrote XML parsing code (but not useage of said output); fixed
+                 file removal logic in file_io.py
 
 Todo:
-    1) Add histogram plots
-    2) Utilize XML for nodata, file names, etc.
+    1) Utilize XML for nodata, file names, etc.
 
 """
 
-def qa_data(dir_mast, dir_test, dir_out, verbose=False):
+def qa_data(dir_mast, dir_test, dir_out, archive=True, use_xml=False,
+            verbose=False):
     """Function to check files and call appropriate QA module(s)
 
     Args:
         dir_mast <str>: path to master directory
         dir_test <str>: path to test directory
         dir_out <str>: path to QA output directory
+        archive <bool>: cleanup, extract from archives, else assume dirs
+            (default = True)
+        use_xml <bool>: use XML for filenames instead of parsing dirs
+            (default = False)
         verbose <bool>: enable/disable verbose logging (default = False)
     """
-
     import sys
     import os
     from file_io import Extract, Find, Cleanup
@@ -63,20 +71,24 @@ def qa_data(dir_mast, dir_test, dir_out, verbose=False):
                             level=logging.WARNING,
                             format='%(asctime)s - %(levelname)s - %(message)s')
 
-    # do initial cleanup of input directories
-    Cleanup.cleanup_files(dir_mast)
-    Cleanup.cleanup_files(dir_test)
+    if archive:
+        # do initial cleanup of input directories
+        Cleanup.cleanup_files(dir_mast)
+        Cleanup.cleanup_files(dir_test)
 
-    # create output directory if it doesn't exist
-    if not os.path.exists(dir_out):
-        os.makedirs(dir_out)
+        # create output directory if it doesn't exist
+        if not os.path.exists(dir_out):
+            os.makedirs(dir_out)
 
-    # read in .tar.gz files
-    test_files = Find.find_files(dir_test, ".gz")
-    mast_files = Find.find_files(dir_mast, ".gz")
+        # read in .tar.gz files
+        test_files = Find.find_files(dir_test, ".gz")
+        mast_files = Find.find_files(dir_mast, ".gz")
 
-    # Extract files from archive
-    Extract.unzip_gz_files(test_files, mast_files)
+        # Extract files from archive
+        Extract.unzip_gz_files(test_files, mast_files)
+
+    # TODO: Implement checking file names with XML.
+    # TODO: Ensure compatibility with NetCDF, HDF files.
 
     # find only the deepest dirs
     test_dirs = [r for r, d, f in os.walk(dir_test) if not d]
@@ -86,7 +98,7 @@ def qa_data(dir_mast, dir_test, dir_out, verbose=False):
         logging.critical("Directory structure of Master differs from Test.")
         sys.exit(1)
 
-    for i in range(0,len(test_dirs)):
+    for i in range(0, len(test_dirs)):
 
         # Find extracted files
         all_test = Find.find_files(test_dirs[i], ".*")
@@ -103,6 +115,9 @@ def qa_data(dir_mast, dir_test, dir_out, verbose=False):
 
             logging.info("Performing QA on {0} files located in {1}".
                          format(j, dir_test))
+            logging.info("Test files: {0}".format(test_f))
+            logging.info("Mast files: {0}".format(mast_f))
+
             # remove any _hdf.img files found with .img files
             if j == ".img":
                 test_f = Cleanup.rm_files(test_f, "_hdf.img")
@@ -122,9 +137,10 @@ def qa_data(dir_mast, dir_test, dir_out, verbose=False):
             else:
                 GeoImage.check_images(test_f, mast_f, dir_out, j)
 
-    # Clean up files
-    Cleanup.cleanup_files(dir_mast)
-    Cleanup.cleanup_files(dir_test)
+    if archive:
+        # Clean up files
+        Cleanup.cleanup_files(dir_mast)
+        Cleanup.cleanup_files(dir_test)
 
     # end timing
     t1 = time.time()

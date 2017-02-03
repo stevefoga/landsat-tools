@@ -63,10 +63,12 @@ def img_stats(diff_img, dir_in, fn_in, dir_out, sds_ct=0):
             writer.writerow(("dir",
                              "file",
                              "mean",
-                             "min"
+                             "min",
                              "max",
                              "25_percentile",
                              "75_percentile",
+                             "1_percentile",
+                             "99_percentile",
                              "std_dev",
                              "median"))
 
@@ -77,5 +79,7 @@ def img_stats(diff_img, dir_in, fn_in, dir_out, sds_ct=0):
                         np.amax(diff_img),
                         np.percentile(diff_img.compressed(), 25),
                         np.percentile(diff_img.compressed(), 75),
+                        np.percentile(diff_img.compressed(), 1),
+                        np.percentile(diff_img.compressed(), 99),
                         np.std(diff_img),
                         np.median(diff_img.compressed())))

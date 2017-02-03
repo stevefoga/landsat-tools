@@ -14,17 +14,19 @@ def do_diff(test, mast, nodata=False):
         test = np.ma.masked_where(test == nodata, test)
         mast = np.ma.masked_where(mast == nodata, mast)
 
+        logging.info("Making nodata value {0} from diff calc.".format(nodata))
+
     try:
+        ## TODO: Figure out why some bands cannot be compared correctly.
         diff = test.astype(np.float) - mast.astype(np.float)
 
         return diff
 
-    except ValueError as e:
-        print(e)
-
-        logging.warning("ValueError: {0}".format(e))
+    except (ValueError, AttributeError, TypeError) as e:
+        logging.warning("Error: {0}".format(e))
 
         return False
+
 
 def call_stats(rast_arr, fn_out, dir_out, rast_num=0):
     """Call stats function(s) if data are valid
@@ -55,7 +57,11 @@ def call_stats(rast_arr, fn_out, dir_out, rast_num=0):
             ImWrite.plot_diff_image(rast_arr, fout, "diff_" + str(rast_num),
                                     dir_out)
 
-            # plot diff histogram
+            # plot abs diff image
+            ImWrite.plot_diff_image(rast_arr, fout, "abs_diff_" +
+                                    str(rast_num), dir_out, do_abs=True)
+
+            # plot diff histograms
             ImWrite.plot_hist(rast_arr, fout, "diff_" + str(rast_num), dir_out)
 
         else:
@@ -188,7 +194,10 @@ class GeoImage:
                         ds_mband, m_nd = RasterIO.read_band_as_array(sds_mband)
 
                     # do diff
-                    diff = do_diff(ds_tband, ds_mband, nodata=t_nd)
+                    if type(t_nd) == type(None):
+                        diff = do_diff(ds_tband, ds_mband)
+                    else:
+                        diff = do_diff(ds_tband, ds_mband, nodata=int(t_nd))
 
                     # call stats functions to write out results/plots/etc.
                     call_stats(diff, i, dir_out, rast_num=ii)
@@ -201,7 +210,10 @@ class GeoImage:
                 ds_mband, m_nd = RasterIO.read_band_as_array(ds_mast)
 
                 # do diff
-                diff = do_diff(ds_tband, ds_mband, nodata=t_nd)
+                if type(t_nd) == type(None):
+                    diff = do_diff(ds_tband, ds_mband)
+                else:
+                    diff = do_diff(ds_tband, ds_mband, nodata=int(t_nd))
 
                 # call stats functions to write out results/plots/etc.
                 call_stats(diff, i, dir_out)

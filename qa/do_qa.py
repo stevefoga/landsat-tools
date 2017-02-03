@@ -20,11 +20,17 @@ if __name__ == "__main__":
     req_named.add_argument('-o', action='store', dest='dir_out', type=str,
                            help='Output directory', required=True)
 
-    parser.add_argument('-verbose', action='store', dest='verbose', type=bool,
-                        help='Verbose logging.', default=False, required=False)
+    parser.add_argument('--no-archive', action='store_false', dest='archive',
+                        help='Look for individual files, instead of g-zipped'
+                             ' archives.', required=False)
+
+    parser.add_argument('--xml', action='store_true', dest='use_xml',
+                        help='Use XML for file names, instead of waling dirs.',
+                        required=False)
+
+    parser.add_argument('--verbose', action='store_true', dest='verbose',
+                        help='Enable verbose logging.', required=False)
 
     arguments = parser.parse_args()
 
-    print(arguments)
-  
     qa_data(**vars(arguments))

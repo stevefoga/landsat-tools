@@ -181,7 +181,7 @@ class Find:
 
 class ImWrite:
     @staticmethod
-    def plot_diff_image(diff_raster, fn_out, fn_type, dir_out):
+    def plot_diff_image(diff_raster, fn_out, fn_type, dir_out, do_abs=False):
         """Take difference array and plot as image.
 
         Args:
@@ -193,23 +193,28 @@ class ImWrite:
         import matplotlib.pyplot as plt
         import numpy as np
 
-        # make nodata mask
+        # mask pixels that did not differ
         diff_raster = np.ma.masked_where(diff_raster == 0, diff_raster)
 
         # make output file
         im_out = dir_out + os.sep + fn_out + "_" + fn_type + ".png"
 
-        # plot out diff figure
-        plt.imshow(diff_raster, cmap='afmhot')
-        plt.colorbar(label=fn_type)
-        plt.savefig(im_out, dpi=250)
-        plt.title(fn_out)
-        plt.clf()
+        # plot diff figure
+        if do_abs:
+            plt.imshow(np.abs(diff_raster), cmap='bone')
+            plt.colorbar(label="Abs. Difference")
+        else:
+            plt.imshow(diff_raster, cmap='afmhot')
+            plt.colorbar(label="Difference")
 
-        logging.warning("Difference raster written to {0}.".format(im_out))
+        plt.title(fn_out)
+        plt.savefig(im_out, dpi=250)
+        plt.close()
+
+        logging.warning("{0} raster written to {1}.".format(fn_type, im_out))
 
     @staticmethod
-    def plot_hist(diff_raster, fn_out, fn_type, dir_out, bins=255):
+    def plot_hist(diff_raster, fn_out, fn_type, dir_out, bins=False):
         """Take difference array and plot as histogram.
 
         Args:
@@ -222,16 +227,41 @@ class ImWrite:
         import matplotlib.pyplot as plt
         import numpy as np
 
-        # make nodata mask
+        def bin_size(rast):
+            """Determine bin size based upon data type.
+
+            Args:
+                rast <numpy.ndarray>: numpy array of values
+            """
+            dt = rast.dtype
+
+            if '64' or '32' in dt.name:
+                return 2000
+            elif '16' in dt.name:
+                return 1000
+            elif '8' in dt.name:
+                return 256
+            else:
+                return 50
+
+        # mask pixels that did not differ
         diff_raster = np.ma.masked_where(diff_raster == 0, diff_raster)
 
         # make output file
         im_out = dir_out + os.sep + fn_out + "_" + fn_type + "_hist.png"
 
-        plt.hist(diff_raster.flatten(), bins)
+        # get array of values that are actually different
+        diff_valid = diff_raster.compressed()
+
+        # determine bin size
+        if not bins:
+            bins = bin_size(diff_raster)
+
+        # do histogram
+        plt.hist(diff_valid, bins)
 
         # define histogram parameters
-        plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0)) # scinot
+        plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))  # scinot
         plt.title(fn_out + " Differences")
         plt.xlabel("Value")
         plt.ylabel("Frequency")
@@ -239,21 +269,26 @@ class ImWrite:
 
         # do basic stats
         diff_mean = np.mean(diff_raster)
+        diff_sd = np.std(diff_raster)
         diff_abs_mean = np.mean(np.abs(diff_raster))
-        diff_pix = np.sum(diff_raster.mask == True)
+        diff_pix = len(diff_valid)
         diff_pct = (np.float(diff_pix) / np.product(np.shape(diff_raster))) \
                    * 100.0
 
         # annotate plot with basic stats
         plt.annotate("mean diff: " + str(round(diff_mean, 3)) + "\n" +
+                     "std. dev.: " + str(round(diff_sd, 3)) + "\n" +
                      "abs. mean diff: " + str(round(diff_abs_mean, 3)) + "\n" +
                      "# diff pixels: " + str(diff_pix) + "\n" +
-                     "% diff: " + str(round(diff_pct, 3)) + "\n",
-                     xy=(0.68, 0.8),
+                     "% diff: " + str(round(diff_pct, 3)) + "\n" +
+                     "# bins: " + str(bins) + "\n",
+                     xy=(0.68, 0.72),
                      xycoords='axes fraction')
 
         # write figure out to PNG
         plt.savefig(im_out, bbox_inches="tight", dpi=350)
+
+        plt.close()
 
         logging.warning("Difference histogram written to {0}.".format(im_out))
 
@@ -268,6 +303,7 @@ class Cleanup:
            test_fnames <str>: test file
            mast_fnames <str>: master file
         """
+        import itertools
 
         def rm_fn(fns):
             """Grab just the filename
@@ -296,17 +332,22 @@ class Cleanup:
             if len(fn_diffs) == 0:
                 return test_fnames
 
-            for ii in test_fnames:
-                rm = []
-                for jj in fn_diffs:
-                    if jj in ii:
-                        rm.append(False)
-                    else:
-                        rm.append(True)
+            # get only file name
+            test_fn = rm_fn(test_fnames)
 
-            test_fn = test_fnames[rm == True]
+            rm = []
+            for ii in test_fn:
+                if ii in fn_diffs:
+                    rm.append(False)
+                else:
+                    rm.append(True)
 
-            return test_fn
+            logging.debug("remove boolean: {0}".format(rm))
+            logging.debug("test_fn: {0}".format(test_fn))
+            logging.debug("final list: {0}".format(list(
+                itertools.compress(test_fnames, rm))))
+
+            return list(itertools.compress(test_fnames, rm))
 
         test_output = compare_and_rm(test_fnames, mast_fnames)
         mast_output = compare_and_rm(mast_fnames, test_fnames)
@@ -357,7 +398,7 @@ class Cleanup:
 
     @staticmethod
     def rm_files(envi_files, ext):
-        """Clean up files by specific extension
+        """Remove files from list, by specific extension
 
         Args:
             envi_files <list>: file names to be checked
@@ -373,13 +414,51 @@ class Cleanup:
 class Read:
     @staticmethod
     def open_xml(xml_in):
-        """Open XML and get band-specific information.
+        """
+        Open XML and get band-specific information.
 
         Args:
             xml_in <str>: file path to XML
         """
+        from collections import defaultdict
         import xml.etree.ElementTree as ET
+
+        '''source: http://stackoverflow.com/questions/7684333/converting-xml-
+        to-dictionary-using-elementtree'''
+
+        def etree_to_dict(t):
+            d = {t.tag: {} if t.attrib else None}
+            children = list(t)
+            if children:
+                dd = defaultdict(list)
+                for dc in map(etree_to_dict, children):
+                    for k, v in dc.items():
+                        dd[k].append(v)
+                d = {t.tag: {k: v[0] if len(v) == 1 else v for k, v in
+                             dd.items()}}
+            if t.attrib:
+                d[t.tag].update(('@' + k, v) for k, v in t.attrib.items())
+            if t.text:
+                text = t.text.strip()
+                if children or t.attrib:
+                    if text:
+                        d[t.tag]['#text'] = text
+                else:
+                    d[t.tag] = text
+            return d
 
         root = ET.parse(xml_in).getroot()
 
-        return
+        xml_dict = etree_to_dict(root)
+
+        bands = []
+        for band in xml_dict['{http://espa.cr.usgs.gov/v2}espa_metadata'] \
+                ['{http://espa.cr.usgs.gov/v2}bands'] \
+                ['{http://espa.cr.usgs.gov/v2}band']:
+            bands.append(band['{http://espa.cr.usgs.gov/v2}file_name'])
+
+        if len(bands) == 0:
+            return
+
+        else:
+            return bands

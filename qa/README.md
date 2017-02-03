@@ -59,6 +59,10 @@ The qa tool is designed to compare master (incumbent) and test (new) data to hig
     * Row, column grid
     * Image name as title
 
+* Examples
+  * Histogram
+
+
 ## Caveats
 * Finds file name(s) by band, using os.walk(). XML-based file name discovery not fully implemented.
 * If archive mode is used (default), data files are cleaned up after analysis.
@@ -79,6 +83,6 @@ do_qa.py
 
 ## Example use
 ```bash
-python do_qa.py -m /path/to/master_directory/ -t /path/to/test_directory/ -o /path/to/output_results/ --verbose
+$ python do_qa.py -m /path/to/master_directory/ -t /path/to/test_directory/ -o /path/to/output_results/ --verbose
 ```
 

@@ -11,7 +11,7 @@ Purpose: Perform QA on georeferenced images and associated metadata. Designed
 Author:   Steve Foga
 Contact:  steven.foga.ctr@usgs.gov
 Created:  21 December 2016
-Modified: 02 February 2017
+Modified: 09 March 2017
 
 Changelog:
     21 Dec 2016: Original development.
@@ -20,11 +20,13 @@ Changelog:
                  stats output on plots; fixed nodata filtering for histograms;
                  wrote XML parsing code (but not useage of said output); fixed
                  file removal logic in file_io.py
-
-Todo:
-    1) Utilize XML for nodata, file names, etc.
-
+    09 Mar 2017: Fixed error handling for files that have mis-matched SDS
+                 Updated TODOs
 """
+# TODO (high): Ignore processing date on Landsat C1 product IDs.
+# TODO (med): Try to enable SDS sorting with NetCDF, HDF files.
+# TODO (low): Implement checking file names with XML.
+
 
 def qa_data(dir_mast, dir_test, dir_out, archive=True, use_xml=False,
             verbose=False):
@@ -86,9 +88,6 @@ def qa_data(dir_mast, dir_test, dir_out, archive=True, use_xml=False,
 
         # Extract files from archive
         Extract.unzip_gz_files(test_files, mast_files)
-
-    # TODO: Implement checking file names with XML.
-    # TODO: Ensure compatibility with NetCDF, HDF files.
 
     # find only the deepest dirs
     test_dirs = [r for r, d, f in os.walk(dir_test) if not d]

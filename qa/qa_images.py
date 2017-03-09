@@ -174,6 +174,11 @@ class GeoImage:
             # Count number of sub-bands in the files
             d_range = Find.count(i, ds_test, j, ds_mast, ext)
 
+            if d_range is None:
+                logging.critical("Number of files different; data cannot be "
+                                 "tested successfully.")
+                continue
+
             # if sub-bands exist, read them one-by-one and do diffs + stats
             if d_range > 1:
                 for ii in range(0, d_range):

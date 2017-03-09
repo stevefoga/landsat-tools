@@ -167,9 +167,9 @@ class Find:
         else:
             logging.info("File {0} is a multiband raster.".format(fn_mast))
 
-        if d_range_test != d_range_mast:
-            logging.critical("Number of sub-bands inside raster do not match."
-                             "Test: {0} | Master: {0}.".
+        if int(d_range_test) != int(d_range_mast):
+            logging.critical("Number of sub-bands inside raster do not match. "
+                             "Test: {0} | Master: {1}.".
                              format(d_range_test, d_range_mast))
             d_range = None
 

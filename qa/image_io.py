@@ -51,7 +51,12 @@ class RasterIO:
         """
         # get nodata value
         r_a = rast.GetRasterBand(n_bands)
-        r_nd = r_a.GetNoDataValue()
+        try:
+            r_nd = r_a.GetNoDataValue()
+        except AttributeError:
+            logging.warning("Variable {0} does not have NoData value.".
+                            format(r_a))
+            r_nd = None
 
         # read raster as array
         rast_arr = np.array(r_a.ReadAsArray())

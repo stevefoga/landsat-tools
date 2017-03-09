@@ -124,7 +124,7 @@ def do_diff(fn_mast,fn_test,mast_nodata,*args):
     mast_band = get_fn(s_id)
     test_band = get_fn(fnt)
    
-    if mast_band != test_band:
+    if mast_band[0].split('.')[0] != test_band[0].split('.')[0]:
       print("Bands {0} and {1} are not a match! Continuing...".
                                                  format(mast_band, test_band))
       return
@@ -213,7 +213,7 @@ def do_diff(fn_mast,fn_test,mast_nodata,*args):
       pct_diff = round((float(diff_npix) / tot_pix) * 100., 6)
 
     except ZeroDivisionError:
-      pct_diff = 100.0
+      pct_diff = 0.0
 
     
     ##########################################################################

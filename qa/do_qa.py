@@ -27,8 +27,6 @@ if __name__ == "__main__":
                         help='Look for individual files, instead of g-zipped'
                              ' archives.', required=False)
 
-
-
     parser.add_argument('--verbose', action='store_true', dest='verbose',
                         help='Enable verbose logging.', required=False)
 

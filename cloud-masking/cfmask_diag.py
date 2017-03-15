@@ -52,7 +52,8 @@ Version:  1.1
 Changelog:
     14-Sep-2016 - 0.1x - Original development.
     19-Oct-2016 - 1.0 - First correctly working version
-    15-Mar-2017 - 1.1 - PEP8 compliance, added argparse, overall code cleanup
+    15-Mar-2017 - 1.1 - PEP8 compliance, added argparse, overall code cleanup,
+                        allow t_buffer and cloud_prob_threshold to be toggled
 
 
 Caveats/Known issues:
@@ -66,9 +67,8 @@ Caveats/Known issues:
 Potential future work:
     1) Add cirrus test option.
     2) Add thermal disable option.
-    3) Add cloud probability toggle option (hard-coded at 22.5)
-    4) Add dilation for cloud; allow toggle of dilate buffer (hard-coded at 3)
-    5) Add cloud shadow; allow toggle of  dilate buffer (hard-coded at 3)
+    3) Add dilation for cloud; allow toggle of dilate buffer (hard-coded at 3)
+    4) Add cloud shadow; allow toggle of  dilate buffer (hard-coded at 3)
 
 
 References:
@@ -849,7 +849,7 @@ if __name__ == "__main__":
 
     req_named = parser.add_argument_group('Required named arguments')
 
-    req_named.add_argument('-a', action='store', dest='input_gz', type=str,
+    req_named.add_argument('-i', action='store', dest='input_gz', type=str,
                            help='Path to input .tar.gz archive.',
                            required=True)
 

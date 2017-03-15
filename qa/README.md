@@ -2,7 +2,7 @@
 This QA software exists to provide reporting and statistical tools for comparing geospatial imagery generated with different software implementations.
 
 ## Overview
-The qa tool is designed to compare master (incumbent) and test (new) data to highlight potential differences in file structure 
+The qa tool is designed to compare master (incumbent) and test (new) data to highlight potential differences in file structure. 
 
 ## Requirements
 * Python 2.7.x/3.x or greater
@@ -29,6 +29,7 @@ The qa tool is designed to compare master (incumbent) and test (new) data to hig
 ## Features
 * Logging
   * Compares text files line-by-line for differences, highlights new/modified lines in log file
+  * Verification of XML schema (optional)
   * Logs file(s) that are different
   * Logs non-matching file names
   * Shows input, output actions in log file (--verbose only)
@@ -76,7 +77,7 @@ The qa tool is designed to compare master (incumbent) and test (new) data to hig
 
 
 ## Caveats
-* Finds file name(s) by band, using os.walk(). XML-based file name discovery not fully implemented.
+* Finds file name(s) by band, using os.walk(). XML-based file name discovery not implemented.
 * If archive mode is used (default), data files are cleaned up after analysis.
 * File names must be identical, otherwise scenes are not compared.
 
@@ -89,8 +90,8 @@ do_qa.py
     * -o /path/to/output_results/
   
   * Optional
+    * -x Path to XML schema (for validating XML)
     * --no-archive Look for individual files, instead of g-zipped archives
-    * --xml Use XML for file names, instead of walking directories (not fully implemented)
     * --verbose Enable verbose logging.
 
 ## Example use

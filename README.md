@@ -1,6 +1,7 @@
 # landsat-tools
 
-Repository for scripts I use to pre-process and evaluate data products. 
+Repository for scripts I use to pre-process, characterize, and evaluate data 
+products. 
 
 Many products, such as Landsat Top of Atmosphere (TOA) Reflectance, Surface
 Reflectance (SR) and SR-derived spectral indices are available at no cost from

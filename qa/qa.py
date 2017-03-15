@@ -18,17 +18,17 @@ Changelog:
     12 Jan 2017: Fixed errors, formatting.
     02 Feb 2017: Added switch for archived or non-archived inputs; modified
                  stats output on plots; fixed nodata filtering for histograms;
-                 wrote XML parsing code (but not useage of said output); fixed
+                 wrote XML parsing code (but not usage of said output); fixed
                  file removal logic in file_io.py
     09 Mar 2017: Fixed error handling for files that have mis-matched SDS
                  Updated TODOs
+    15 mar 2017: Added optional XML schema validation; fixed typos
 """
-# TODO (high): Ignore processing date on Landsat C1 product IDs.
-# TODO (med): Try to enable SDS sorting with NetCDF, HDF files.
+
+# TODO (med): Enable SDS sorting with NetCDF, HDF files.
 # TODO (low): Implement checking file names with XML.
 
-
-def qa_data(dir_mast, dir_test, dir_out, archive=True, use_xml=False,
+def qa_data(dir_mast, dir_test, dir_out, archive=True, xml_schema=False,
             verbose=False):
     """Function to check files and call appropriate QA module(s)
 
@@ -38,7 +38,7 @@ def qa_data(dir_mast, dir_test, dir_out, archive=True, use_xml=False,
         dir_out <str>: path to QA output directory
         archive <bool>: cleanup, extract from archives, else assume dirs
             (default = True)
-        use_xml <bool>: use XML for filenames instead of parsing dirs
+        xml_schema <str>: test any XML files against XML schema.
             (default = False)
         verbose <bool>: enable/disable verbose logging (default = False)
     """
@@ -60,7 +60,7 @@ def qa_data(dir_mast, dir_test, dir_out, archive=True, use_xml=False,
     # initiate logger
     if verbose:
         log_out = dir_out + os.sep + "log_" + time.strftime("%Y%m%d-%I%M%S") \
-            + "_verbose.log"
+                  + "_verbose.log"
         logging.basicConfig(filename=log_out,
                             level=logging.DEBUG,
                             format='%(asctime)s - %(levelname)s - %(name)s - \
@@ -98,7 +98,6 @@ def qa_data(dir_mast, dir_test, dir_out, archive=True, use_xml=False,
         sys.exit(1)
 
     for i in range(0, len(test_dirs)):
-
         # Find extracted files
         all_test = Find.find_files(test_dirs[i], ".*")
         all_mast = Find.find_files(mast_dirs[i], ".*")
@@ -107,7 +106,6 @@ def qa_data(dir_mast, dir_test, dir_out, archive=True, use_xml=False,
         exts = Find.get_ext(all_test, all_mast)
 
         for j in exts:
-
             logging.info("Finding {0} files...".format(j))
             test_f = Find.find_files(test_dirs[i], j)
             mast_f = Find.find_files(mast_dirs[i], j)
@@ -122,17 +120,26 @@ def qa_data(dir_mast, dir_test, dir_out, archive=True, use_xml=False,
                 test_f = Cleanup.rm_files(test_f, "_hdf.img")
                 mast_f = Cleanup.rm_files(mast_f, "_hdf.img")
 
+            # if a text-based file
             if (j.lower() == ".txt" or j.lower() == ".xml"
-                or j.lower() == ".gtf" or j.lower() == ".hdr" or
-                j.lower() == ".stats"):
+                or j.lower() == ".gtf" or j.lower() == ".hdr"
+                or j.lower() == ".stats"):
                 MetadataQA.check_text_files(test_f, mast_f, j)
 
+                # if text-based file is xml
+                if j.lower() == ".xml" and xml_schema:
+                    MetadataQA.check_xml_schema(test_f, xml_schema)
+                    MetadataQA.check_xml_schema(mast_f, xml_schema)
+
+            # if non-geo image
             elif j.lower() == ".jpg":
                 MetadataQA.check_jpeg_files(test_f, mast_f, dir_out)
 
+            # if no extension
             elif len(j) == 0:
                 continue
 
+            # else, it's probably a geo-based image
             else:
                 GeoImage.check_images(test_f, mast_f, dir_out, j)
 

@@ -5,6 +5,33 @@ import logging
 
 class MetadataQA:
     @staticmethod
+    def check_xml_schema(test, schema):
+        """Ensure XML matches ESPA schema.
+        :param test: <str> XML metadata file to compare with schema.
+        :param schema: <str> Path to XML schema file.
+        :return: None
+        """
+        from lxml import etree
+
+        # read schema
+        xmlschema = etree.XMLSchema(etree.parse(schema))
+
+        # read XML
+        xmlfile = etree.parse(test)
+
+        # do validation
+        result = xmlschema.validate(xmlfile)
+
+        if result:
+            logging.warning('XML file {0} is valid with XML schema {1}.'
+                            .format(test, schema))
+
+        else:
+            logging.critical('XML file {0} is NOT valid with XML schema {1}.'
+                             .format(test, schema))
+
+
+    @staticmethod
     def check_text_files(test, mast, ext):
         """Check master and test text-based files (headers, XML, etc.)
         line-by-line for differences.

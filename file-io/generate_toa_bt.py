@@ -19,7 +19,6 @@ Example usage:
                             -d /path/to/your/output_directory/
 
 Author:   Steve Foga
-Contact:  steven.foga.ctr@usgs.gov
 Created:  19 October 2016
 Modified: 17 March 2017
 
@@ -33,6 +32,14 @@ Source:
 
 
 def gen_toa_bt(input_gz, dir_out=False, verbose=False):
+    """
+    Generate TOA reflectance and BT using Level-1 Landsat data.
+
+    :param input_gz: <str> path to .tar.gz archive
+    :param dir_out: <str> path to output directory (default=use input_gz dir.)
+    :param verbose:
+    :return:
+    """
     import os
     import sys
     import tarfile
@@ -567,11 +574,11 @@ if __name__ == "__main__":
     req_named.add_argument('-i', action='store', dest='input_gz', type=str,
                            help='Level-1 data archive', required=True)
 
-    req_named.add_argument('-d', action='store', dest='dir_out', type=str,
+    parser.add_argument('-d', action='store', dest='dir_out', type=str,
                            help='Output directory (default=input dir',
                            required=False)
 
-    req_named.add_argument('--verbose', action='store', dest='verbose',
+    parser.add_argument('--verbose', action='store', dest='verbose',
                            required=False)
 
     arguments = parser.parse_args()

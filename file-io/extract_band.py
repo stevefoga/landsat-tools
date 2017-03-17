@@ -70,6 +70,7 @@ def extract(input_gz, file_str, dir_out=False):
         print("No files found in {0} using search string {1}"
               .format(input_gz, file_str))
 
+
 if __name__ == "__main__":
     import argparse
 
@@ -91,8 +92,8 @@ if __name__ == "__main__":
                            required=True)
 
     parser.add_argument('-d', action='store', dest='dir_out', type=str,
-                           help='Output directory (default=input dir.)',
-                           required=False)
+                        help='Output directory (default=input dir.)',
+                        required=False)
 
     arguments = parser.parse_args()
 

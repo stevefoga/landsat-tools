@@ -17,11 +17,12 @@ The software takes Top of Atmosphere (TOA) Reflectance data, runs the CFMask con
 * Currently provides water and land probability masks, which can be commented out within the code.
 
 ## Caveats
-Only does cloud probability tests; missing features from original CFMask code, specifically:
-* Cloud dilation
-* Cloud shadow, cloud shadow dilation
-* Cirrus band addition (OLI-TIRS only)
-* Disable thermal band
+* The output of this code has not been formally validated against the output of CFMask's potential_cloud_shadow_snow_mask code; use at own risk.
+* Only does cloud probability tests; missing features from original CFMask code, specifically:
+  * Cloud dilation
+  * Cloud shadow, cloud shadow dilation
+  * Cirrus band addition (OLI-TIRS only)
+  * Disable thermal band
 
 ## Using cfmask_diag
 cfmask_diag.py 

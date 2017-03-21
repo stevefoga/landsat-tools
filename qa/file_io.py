@@ -217,7 +217,7 @@ class ImWrite:
                      xy=(0.01, 0.94),
                      xycoords='axes fraction')
 
-        plt.title(fn_out)
+        plt.title(fn_out, y=1.05)
         plt.savefig(im_out, dpi=250)
         plt.close()
 

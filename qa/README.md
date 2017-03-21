@@ -2,7 +2,7 @@
 This QA software exists to provide reporting and statistical tools for comparing geospatial imagery generated with different software implementations.
 
 ## Overview
-The qa tool is designed to compare master (incumbent) and test (new) data to highlight potential differences in file structure. 
+The qa tool is designed to compare master (incumbent) and test (new) data to identify differences in file structure and/or actual data content. 
 
 ## Requirements
 * Python 2.7.x/3.x or greater
@@ -30,15 +30,18 @@ The qa tool is designed to compare master (incumbent) and test (new) data to hig
 * Logging
   * Compares text files line-by-line for differences, highlights new/modified lines in log file
   * Verification of XML(s) using schema (optional, returns True/False)
-  * Logs file(s) whose contents differ
-  * Logs non-matching file names
-  * Shows input, output actions in log file (--verbose only)
-  * Displays run time
+  * Line-by-line details of file content disagreements
+  * Non-matching file names
+  * Input/output actions in log file (--verbose only)
+  * Total run time
 
 * Geospatial attribute comparisons
   * Map projection
   * Geographic transformation
   * Grid dimensions
+ 
+* Data file comparisons
+  * Difference comparison in grid space (not geographic space)
 
 * Statistics (nodata is excluded)
   * CSV

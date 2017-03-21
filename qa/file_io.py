@@ -181,14 +181,17 @@ class Find:
 
 class ImWrite:
     @staticmethod
-    def plot_diff_image(diff_raster, fn_out, fn_type, dir_out, do_abs=False):
+    def plot_diff_image(test, mast, diff_raster, fn_out, fn_type, dir_out,
+                        do_abs=False):
         """Take difference array and plot as image.
 
         Args:
-          diff_raster <numpy.ndarray>: numpy array of values
-          fn_out <str>: basename for file
-          fn_type <str>: defines title of plot - "diff" or "pct_diff"
-          dir_out <str>: directory where output data are being stored
+            test <str>: name of test file
+            mast <str>: name of mast file
+            diff_raster <numpy.ndarray>: numpy array of values
+            fn_out <str>: basename for file
+            fn_type <str>: defines title of plot - "diff" or "pct_diff"
+            dir_out <str>: directory where output data are being stored
         """
         import matplotlib.pyplot as plt
         import numpy as np
@@ -207,6 +210,13 @@ class ImWrite:
             plt.imshow(diff_raster, cmap='afmhot')
             plt.colorbar(label="Difference")
 
+        # annotate plot with file names
+        plt.annotate(str(mast) + "\n" +
+                     str(test) + "\n",
+                     fontsize=5,
+                     xy=(0.01, 0.94),
+                     xycoords='axes fraction')
+
         plt.title(fn_out)
         plt.savefig(im_out, dpi=250)
         plt.close()
@@ -214,15 +224,18 @@ class ImWrite:
         logging.warning("{0} raster written to {1}.".format(fn_type, im_out))
 
     @staticmethod
-    def plot_hist(diff_raster, fn_out, fn_type, dir_out, bins=False):
+    def plot_hist(test, mast, diff_raster, fn_out, fn_type, dir_out,
+                  bins=False):
         """Take difference array and plot as histogram.
 
         Args:
-          diff_raster <numpy.ndarray>: numpy array of values
-          fn_out <str>: basename for file
-          fn_type <str>: defines title of plot - "diff" or "pct_diff"
-          dir_out <str>: directory where output data are being stored
-          bins <int>: number of bins for histogram (default=255)
+            test <str>: name of test file
+            mast <str>: name of master file
+            diff_raster <numpy.ndarray>: numpy array of values
+            fn_out <str>: basename for file
+            fn_type <str>: defines title of plot - "diff" or "pct_diff"
+            dir_out <str>: directory where output data are being stored
+            bins <int>: number of bins for histogram (default=255)
         """
         import matplotlib.pyplot as plt
         import numpy as np
@@ -274,6 +287,13 @@ class ImWrite:
         diff_pix = len(diff_valid)
         diff_pct = (np.float(diff_pix) / np.product(np.shape(diff_raster))) \
                    * 100.0
+
+        # annotate plot with file names
+        plt.annotate(str(mast) + "\n" +
+                     str(test) + "\n",
+                     fontsize=5,
+                     xy=(0.01, 0.94),
+                     xycoords='axes fraction')
 
         # annotate plot with basic stats
         plt.annotate("mean diff: " + str(round(diff_mean, 3)) + "\n" +

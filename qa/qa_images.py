@@ -28,10 +28,12 @@ def do_diff(test, mast, nodata=False):
         return False
 
 
-def call_stats(rast_arr, fn_out, dir_out, rast_num=0):
+def call_stats(test, mast, rast_arr, fn_out, dir_out, rast_num=0):
     """Call stats function(s) if data are valid
 
     Args:
+        test <str>: name of test file
+        mast <str>: name of master file
         rast_arr <numpy.ndarray>: array of target raster
         fn_out <str>: file path of image
         dir_out <str>: path to output directory
@@ -46,23 +48,25 @@ def call_stats(rast_arr, fn_out, dir_out, rast_num=0):
                     type(rast_arr) is np.ma.core.MaskedArray:
         if np.any(rast_arr != 0):
             logging.warning("Image difference found!")
+            logging.warning("Test: {0} | Master: {0}".format(test, mast))
             # find file name (for saving plot)
             fout = fn_out.split(os.sep)[-1]
 
             # do stats of difference
-            stats.img_stats(rast_arr, os.path.dirname(fn_out), fout, dir_out,
-                            rast_num)
+            stats.img_stats(test, mast, rast_arr, os.path.dirname(fn_out),
+                            fout, dir_out, rast_num)
 
             # plot diff image
-            ImWrite.plot_diff_image(rast_arr, fout, "diff_" + str(rast_num),
-                                    dir_out)
+            ImWrite.plot_diff_image(test, mast, rast_arr, fout, "diff_" +
+                                    str(rast_num), dir_out)
 
             # plot abs diff image
-            ImWrite.plot_diff_image(rast_arr, fout, "abs_diff_" +
+            ImWrite.plot_diff_image(test, mast, rast_arr, fout, "abs_diff_" +
                                     str(rast_num), dir_out, do_abs=True)
 
             # plot diff histograms
-            ImWrite.plot_hist(rast_arr, fout, "diff_" + str(rast_num), dir_out)
+            ImWrite.plot_hist(test, mast, rast_arr, fout, "diff_" +
+                              str(rast_num), dir_out)
 
         else:
             logging.info("Binary data match.")
@@ -205,7 +209,7 @@ class GeoImage:
                         diff = do_diff(ds_tband, ds_mband, nodata=int(t_nd))
 
                     # call stats functions to write out results/plots/etc.
-                    call_stats(diff, i, dir_out, rast_num=ii)
+                    call_stats(i, j, diff, i, dir_out, rast_num=ii)
 
             else:  # else it's a singleband raster
                 logging.info("Reading {0}...".format(i))
@@ -221,4 +225,4 @@ class GeoImage:
                     diff = do_diff(ds_tband, ds_mband, nodata=int(t_nd))
 
                 # call stats functions to write out results/plots/etc.
-                call_stats(diff, i, dir_out)
+                call_stats(i, j, diff, i, dir_out)

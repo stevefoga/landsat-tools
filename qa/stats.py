@@ -38,10 +38,12 @@ def pct_diff_raster(ds_tband, ds_mband, diff_rast, nodata=-9999):
     return pct_diff_raster
 
 
-def img_stats(diff_img, dir_in, fn_in, dir_out, sds_ct=0):
+def img_stats(test, mast, diff_img, dir_in, fn_in, dir_out, sds_ct=0):
     """Log stats from array
 
     Args:
+        test <str>: name of test file
+        mast <str>: name of master file
         diff_img <numpy.ndarray>: image array
         dir_in <str>: directory where test data exists
         fn_in <str>: input filename (to identify csv entry)
@@ -61,7 +63,8 @@ def img_stats(diff_img, dir_in, fn_in, dir_out, sds_ct=0):
         # write header if file didn't already exist
         if not file_exists:
             writer.writerow(("dir",
-                             "file",
+                             "test_file",
+                             "master_file",
                              "mean",
                              "min",
                              "max",
@@ -73,7 +76,8 @@ def img_stats(diff_img, dir_in, fn_in, dir_out, sds_ct=0):
                              "median"))
 
         writer.writerow((dir_in,
-                        fn_in + "_" + str(sds_ct),
+                        test + "_" + str(sds_ct),
+                        mast + "_" + str(sds_ct),
                         np.mean(diff_img),
                         np.amin(diff_img),
                         np.amax(diff_img),

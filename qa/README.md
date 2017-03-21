@@ -18,24 +18,24 @@ The qa tool is designed to compare master (incumbent) and test (new) data to hig
   * .hdr
 
 * Geo-referenced image files
-  * .tif
-  * .img
-  * .hdf
-  * .nc
+  * GeoTIFF (.tif)
+  * ENVI (.img)
+  * HDF (.hdf)
+  * NetCDF (.nc)
 
 * Image files
-  * .jpg
+  * JPEG (.jpg)
 
 ## Features
 * Logging
   * Compares text files line-by-line for differences, highlights new/modified lines in log file
-  * Verification of XML schema (optional)
-  * Logs file(s) that are different
+  * Verification of XML(s) using schema (optional, returns True/False)
+  * Logs file(s) whose contents differ
   * Logs non-matching file names
   * Shows input, output actions in log file (--verbose only)
   * Displays run time
 
-* Geospatial attributes
+* Geospatial attribute comparisons
   * Map projection
   * Geographic transformation
   * Grid dimensions
@@ -50,6 +50,7 @@ The qa tool is designed to compare master (incumbent) and test (new) data to hig
     * Standard deviation
     * Median
   * Histogram
+    * Master, test file paths
     * Frequency in scientific notation
     * Mean difference
     * Std. dev.
@@ -58,6 +59,7 @@ The qa tool is designed to compare master (incumbent) and test (new) data to hig
     * Percent of different pixels
     * Number of histogram bins (determined by image data type)
   * Difference, absolute difference images
+    * Master, test file paths
     * Color scale bar
     * Row, column grid
     * Image name as title
@@ -90,7 +92,7 @@ do_qa.py
     * -o /path/to/output_results/
   
   * Optional
-    * -x Path to XML schema (for validating XML)
+    * -x /path/to/xml_schema.xsd (for validating XML)
     * --no-archive Look for individual files, instead of g-zipped archives
     * --verbose Enable verbose logging.
 

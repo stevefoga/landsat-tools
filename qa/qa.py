@@ -11,7 +11,7 @@ Purpose: Perform QA on georeferenced images and associated metadata. Designed
 Author:   Steve Foga
 Contact:  steven.foga.ctr@usgs.gov
 Created:  21 December 2016
-Modified: 09 March 2017
+Modified: 21 March 2017
 
 Changelog:
     21 Dec 2016: Original development.
@@ -22,14 +22,16 @@ Changelog:
                  file removal logic in file_io.py
     09 Mar 2017: Fixed error handling for files that have mis-matched SDS
                  Updated TODOs
-    15 mar 2017: Added optional XML schema validation; fixed typos
+    15 Mar 2017: Added optional XML schema validation; fixed typos
+    21 Mar 2017: Added flag to include/exclude nodata from calculations
+
 """
 
 # TODO (med): Enable SDS sorting with NetCDF, HDF files.
 # TODO (low): Implement checking file names with XML.
 
 def qa_data(dir_mast, dir_test, dir_out, archive=True, xml_schema=False,
-            verbose=False):
+            verbose=False, incl_nd=False):
     """Function to check files and call appropriate QA module(s)
 
     Args:
@@ -37,10 +39,11 @@ def qa_data(dir_mast, dir_test, dir_out, archive=True, xml_schema=False,
         dir_test <str>: path to test directory
         dir_out <str>: path to QA output directory
         archive <bool>: cleanup, extract from archives, else assume dirs
-            (default = True)
+            (default=True)
         xml_schema <str>: test any XML files against XML schema.
-            (default = False)
-        verbose <bool>: enable/disable verbose logging (default = False)
+            (default=False)
+        verbose <bool>: enable/disable verbose logging (default=False)
+        incl_nd <bool>: include nodata in comparisons (default=False)
     """
     import sys
     import os

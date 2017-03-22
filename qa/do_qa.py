@@ -25,10 +25,14 @@ if __name__ == "__main__":
 
     parser.add_argument('--no-archive', action='store_false', dest='archive',
                         help='Look for individual files, instead of g-zipped'
-                             ' archives.', required=False)
+                             ' archives', required=False)
 
     parser.add_argument('--verbose', action='store_true', dest='verbose',
-                        help='Enable verbose logging.', required=False)
+                        help='Enable verbose logging', required=False)
+
+    parser.add_argument('--include-nodata', action='store_true',
+                        dest='incl_nd', help='Do not mask NoData values',
+                        required=False)
 
     arguments = parser.parse_args()
 

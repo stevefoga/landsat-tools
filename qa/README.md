@@ -42,6 +42,7 @@ The qa tool is designed to compare master (incumbent) and test (new) data to ide
  
 * Data file comparisons
   * Difference comparison in grid space (not geographic space)
+  * Can mask (default) or include NoData values (as specified in file header)
 
 * Statistics (nodata is excluded)
   * CSV
@@ -97,10 +98,11 @@ do_qa.py
   * Optional
     * -x /path/to/xml_schema.xsd (for validating XML)
     * --no-archive Look for individual files, instead of g-zipped archives
-    * --verbose Enable verbose logging.
+    * --verbose Enable verbose logging
+    * --include-nodata Do not mask NoData values
 
 ## Example use
 ```bash
-$ python do_qa.py -m /path/to/master_directory/ -t /path/to/test_directory/ -o /path/to/output_results/ --verbose
+$ python do_qa.py -m /path/to/master_directory/ -t /path/to/test_directory/ -o /path/to/output_results/ --verbose --include-nodata
 ```
 

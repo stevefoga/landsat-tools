@@ -129,7 +129,7 @@ class ArrayImage:
 
 class GeoImage:
     @staticmethod
-    def check_images(test, mast, dir_out, ext):
+    def check_images(test, mast, dir_out, ext, include_nd=False):
         """Compare the test and master images, both for their raw contents and
         geographic parameters. If differences exist, produce diff plot + CSV
         stats file.
@@ -139,8 +139,8 @@ class GeoImage:
             mast <str>: path to master image
             dir_out <str>: path to output directory
             ext <str>: file extension
+            include_nd <bool>: incl. nodata values in file cmp (default=False)
         """
-        import os
         from image_io import RasterIO, RasterCmp
         from file_io import Cleanup, Find
         import logging
@@ -203,7 +203,7 @@ class GeoImage:
                         ds_mband, m_nd = RasterIO.read_band_as_array(sds_mband)
 
                     # do diff
-                    if type(t_nd) == type(None):
+                    if type(t_nd) is type(None) or include_nd:
                         diff = do_diff(ds_tband, ds_mband)
                     else:
                         diff = do_diff(ds_tband, ds_mband, nodata=int(t_nd))
@@ -219,7 +219,7 @@ class GeoImage:
                 ds_mband, m_nd = RasterIO.read_band_as_array(ds_mast)
 
                 # do diff
-                if type(t_nd) == type(None):
+                if type(t_nd) is type(None) or include_nd:
                     diff = do_diff(ds_tband, ds_mband)
                 else:
                     diff = do_diff(ds_tband, ds_mband, nodata=int(t_nd))

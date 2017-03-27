@@ -93,8 +93,8 @@ def qa_data(dir_mast, dir_test, dir_out, archive=True, xml_schema=False,
         Extract.unzip_gz_files(test_files, mast_files)
 
     # find only the deepest dirs
-    test_dirs = [r for r, d, f in os.walk(dir_test) if not d]
-    mast_dirs = [r for r, d, f in os.walk(dir_mast) if not d]
+    test_dirs = sorted([r for r, d, f in os.walk(dir_test) if not d])
+    mast_dirs = sorted([r for r, d, f in os.walk(dir_mast) if not d])
 
     if len(test_dirs) != len(mast_dirs):
         logging.critical("Directory structure of Master differs from Test.")
@@ -102,8 +102,8 @@ def qa_data(dir_mast, dir_test, dir_out, archive=True, xml_schema=False,
 
     for i in range(0, len(test_dirs)):
         # Find extracted files
-        all_test = Find.find_files(test_dirs[i], ".*")
-        all_mast = Find.find_files(mast_dirs[i], ".*")
+        all_test = sorted(Find.find_files(test_dirs[i], ".*"))
+        all_mast = sorted(Find.find_files(mast_dirs[i], ".*"))
 
         # Find unique file extensions
         exts = Find.get_ext(all_test, all_mast)
@@ -144,7 +144,8 @@ def qa_data(dir_mast, dir_test, dir_out, archive=True, xml_schema=False,
 
             # else, it's probably a geo-based image
             else:
-                GeoImage.check_images(test_f, mast_f, dir_out, j)
+                GeoImage.check_images(test_f, mast_f, dir_out, j,
+                                      include_nd=incl_nd)
 
     if archive:
         # Clean up files
@@ -157,3 +158,4 @@ def qa_data(dir_mast, dir_test, dir_out, archive=True, xml_schema=False,
     h, m = divmod(m, 60)
     logging.warning("Total runtime: {0}h, {1}m, {2}s.".format(h, round(m, 3),
                                                               round(s, 3)))
+    print("Done.")

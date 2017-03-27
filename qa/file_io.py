@@ -271,14 +271,12 @@ class ImWrite:
             bins = bin_size(diff_raster)
 
         # do histogram
-        plt.hist(diff_valid, bins)
-
-        # define histogram parameters
-        plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))  # scinot
-        plt.title(fn_out + " Differences")
-        plt.xlabel("Value")
-        plt.ylabel("Frequency")
-        plt.grid(True)
+        try:
+            plt.hist(diff_valid, bins)
+        except AttributeError:
+            logging.warning("Difference values from diff_valid variable could"
+                            " not be plotted.")
+            return
 
         # do basic stats
         diff_mean = np.mean(diff_raster)

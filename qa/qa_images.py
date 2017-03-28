@@ -45,10 +45,10 @@ def call_stats(test, mast, rast_arr, fn_out, dir_out, rast_num=0):
     from file_io import ImWrite
 
     if type(rast_arr) is np.ndarray or \
-                    type(rast_arr) is np.ma.core.MaskedArray:
+            type(rast_arr) is np.ma.core.MaskedArray:
         if np.any(rast_arr != 0):
             logging.warning("Image difference found!")
-            logging.warning("Test: {0} | Master: {0}".format(test, mast))
+            logging.warning("Test: {0} | Master: {1}".format(test, mast))
             # find file name (for saving plot)
             fout = fn_out.split(os.sep)[-1]
 

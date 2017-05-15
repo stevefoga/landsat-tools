@@ -204,10 +204,10 @@ class ImWrite:
 
         # plot diff figure
         if do_abs:
-            plt.imshow(np.abs(diff_raster), cmap='bone')
+            plt.imshow(np.abs(diff_raster), cmap='PuOr')
             plt.colorbar(label="Abs. Difference")
         else:
-            plt.imshow(diff_raster, cmap='afmhot')
+            plt.imshow(diff_raster, cmap='PuOr')
             plt.colorbar(label="Difference")
 
         # annotate plot with file names

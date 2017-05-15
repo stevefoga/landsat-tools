@@ -120,8 +120,9 @@ def diag(input_gz, cloud_prob_threshold=22.5, t_buffer=400.0):
             b_c['swir1'] = [b for b in bnds if "band5" in b][0]
             b_c['swir2'] = [b for b in bnds if "band7" in b][0]
             b_c['therm'] = [b for b in bnds if "band6." in b][0]
-            print("Thermal band: {0}".format(b_c['therm']))
-
+            
+        print("Thermal band: {0}".format(b_c['therm']))
+        print(b_c)
         return b_c
 
     # read bands as array
@@ -197,11 +198,16 @@ def diag(input_gz, cloud_prob_threshold=22.5, t_buffer=400.0):
 
     # get base name of first band
     fn = os.path.basename(bands[0])
+    print("File base name: {0}".format(fn))
 
     # if Collection 1 data, check first four digits for sensor
     if fn[2] == '0':
 
         lsat_coll = True
+
+        # remove sensor/solar angles from band list
+        bands = [i for i in bands if 'sensor' not in i and
+                 'solar' not in i]
 
         if fn[2:4] == '08':
             band_col = band_by_sensor(True, bands)
@@ -856,11 +862,12 @@ if __name__ == "__main__":
     req_named.add_argument('-cloud_prob_threshold', action='store',
                            dest='cloud_prob_threshold', type=float,
                            help='Cloud probability threshold (default=22.5)',
-                           required=False)
+                           required=False, default=22.5)
 
     req_named.add_argument('-t_buffer', action='store', dest='t_buffer',
                            type=float, help='Temperature probability buffer '
-                                            '(default=400.0)', required=False)
+                                            '(default=400.0)', required=False,
+                                            default=400.0)
 
     arguments = parser.parse_args()
 

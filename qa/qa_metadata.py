@@ -78,11 +78,11 @@ class MetadataQA:
             j_fn = j.split(os.sep)[-1]
             if i_fn != j_fn:
                 logging.error("{0} file names differ. Master: {1} | Test: {2}".
-                              format(ext, i, j))
+                              format(ext, j, i))
                 return
             else:
                 logging.info("{0} file names equivalent. Master: {1} | Test: "
-                             "{2}".format(ext, i, j))
+                             "{2}".format(ext, j, i))
 
             # Check open files line-by-line (sorted) for changes.
             # Print non-matching lines in details.

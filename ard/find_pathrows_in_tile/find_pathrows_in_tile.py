@@ -1,5 +1,5 @@
 """
-fild_pathrows_in_tile.py
+find_pathrows_in_tile.py
 
 Purpose: find all Landsat acquisitions within each Landsat Analysis Ready Data
  (ARD) tile. Check precisely by building boundary extents of each acq., and

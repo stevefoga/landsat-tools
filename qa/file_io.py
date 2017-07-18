@@ -204,7 +204,7 @@ class ImWrite:
 
         # plot diff figure
         if do_abs:
-            plt.imshow(np.abs(diff_raster), cmap='PuOr')
+            plt.imshow(np.abs(diff_raster), cmap='gist_gray')
             plt.colorbar(label="Abs. Difference")
         else:
             plt.imshow(diff_raster, cmap='PuOr')

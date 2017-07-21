@@ -11,6 +11,7 @@ The software takes Top of Atmosphere (TOA) Reflectance data, runs the CFMask con
 
 ## Supported file types
 * GeoTIFFs delivered using the EROS Science Processing Architecture (ESPA; https://espa.cr.usgs.gov/) naming convention, in a .tar.gz archive.
+* Archive must contain both top of atmosphere (TOA) reflectance and brightness temperature (BT).
 
 ## Features
 * Provides a pass/fail flag for each test performed by the CFMask cloud confidence routine, re-implemented from the potential_cloud_shadow_snow_mask.c application (https://github.com/USGS-EROS/espa-cloud-masking/blob/master/cfmask/src/.)
@@ -28,7 +29,7 @@ The software takes Top of Atmosphere (TOA) Reflectance data, runs the CFMask con
 cfmask_diag.py 
   
   * Required:
-    * -i /path/to/input_landsat_toa_reflectance.tar.gz
+    * -i /path/to/input_landsat_toa_and_bt.tar.gz
   
   * Optional
     * -cloud_prob_threshold Set the cloud probability threshold (default=22.5)
@@ -36,6 +37,6 @@ cfmask_diag.py
 
 ## Example use
 ```bash
-$ python cfmask_diag.py -i /path/to/input_landsat_toa_reflectance.tar.gz 
+$ python cfmask_diag.py -i /path/to/input_landsat_toa_and_bt.tar.gz 
 ```
 

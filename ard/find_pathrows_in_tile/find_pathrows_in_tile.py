@@ -173,6 +173,7 @@ def get_polygon(dataset, tile_id):
     :return: <str, osgeo.ogr.Layer> Extracted Proj4 info, Wkt polygon info.
     """
 
+    '''
     def get_pr(feat):
         """
         Get path and row from each polygon feature.
@@ -186,6 +187,7 @@ def get_polygon(dataset, tile_id):
         rr = j_feat['properties']['ROW']
 
         return [pp, rr]
+    '''
 
     def get_sref(dataset):
         """
@@ -206,13 +208,13 @@ def get_polygon(dataset, tile_id):
     poly = ds.ExecuteSQL(build_sql(ds.GetLayer().GetName(), 'h_v', hv))
 
     # Call each feature from polygon (this only access the individual feature)
-    pp = []
-    rr = []
+    #pp = []
+    #rr = []
     for feature in poly:
         # get path/row
-        p_r = get_pr(feature)
-        pp.append(p_r[0])
-        rr.append(p_r[1])
+        #p_r = get_pr(feature)
+        #pp.append(p_r[0])
+        #rr.append(p_r[1])
 
         # get geom info
         feature.GetGeometryRef()
@@ -221,11 +223,12 @@ def get_polygon(dataset, tile_id):
     s_ref = get_sref(poly)
 
     # make output dataframe for path/row info
-    pr_out = pd.DataFrame({'path': pd.Series(pp),
-                           'row': pd.Series(rr)})
+    #pr_out = pd.DataFrame({'path': pd.Series(pp),
+    #                       'row': pd.Series(rr)})
 
     if feature:
-        return s_ref, pr_out, feature
+        #return s_ref, pr_out, feature
+        return s_ref, feature
     else:
         return False
 
@@ -299,9 +302,10 @@ def main(tile_list, shp_in, sensor_datafile, dir_out):
     polygon = {}
     for tile in tile_list:
         polygon[tile] = {}
-        s_ref, path_rows, poly = get_polygon(shp_in, tile)
+        #s_ref, path_rows, poly = get_polygon(shp_in, tile)
+        s_ref, poly = get_polygon(shp_in, tile)
         polygon[tile]['coords'] = proj2geo(s_ref, poly)
-        polygon[tile]['pr'] = path_rows
+        #polygon[tile]['pr'] = path_rows
 
     # read sensor data file
     with open(sensor_datafile, 'r') as myfile:

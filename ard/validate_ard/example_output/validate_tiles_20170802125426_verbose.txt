@@ -1,0 +1,185 @@
+['LE07_CU_003009_20041001_20170519_C01_V01_BT.tar']
+		basename correct
+				basename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_RADSATQA.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				filename correct: True
+		md5 match
+				md5 match: True
+		number of files correct
+				number of files correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_PIXELQA.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_LINEAGEQA.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01.xml
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_BTB6.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				image characteristics: {'Min': False, 'Max': True, 'HasValidPixels': True, 'NoData': True, 'DataType': True}
+				filename correct: True
+['LE07_CU_003009_20041001_20170519_C01_V01_SR.tar']
+		LE07_CU_003009_20041001_20170519_C01_V01_SRB3.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				image characteristics: {'Min': False, 'Max': False, 'HasValidPixels': True, 'NoData': True, 'DataType': True}
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_LINEAGEQA.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_RADSATQA.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				filename correct: True
+		md5 match
+				md5 match: True
+		LE07_CU_003009_20041001_20170519_C01_V01_SRCLOUDQA.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_SRB2.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				image characteristics: {'Min': False, 'Max': False, 'HasValidPixels': True, 'NoData': True, 'DataType': True}
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_SRB1.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				image characteristics: {'Min': False, 'Max': False, 'HasValidPixels': True, 'NoData': True, 'DataType': True}
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01.xml
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_SRB7.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				image characteristics: {'Min': False, 'Max': False, 'HasValidPixels': True, 'NoData': True, 'DataType': True}
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_SRATMOSOPACITYQA.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				filename correct: True
+		basename correct
+				basename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_PIXELQA.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_SRB5.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				image characteristics: {'Min': False, 'Max': False, 'HasValidPixels': True, 'NoData': True, 'DataType': True}
+				filename correct: True
+		number of files correct
+				number of files correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_SRB4.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				image characteristics: {'Min': False, 'Max': False, 'HasValidPixels': True, 'NoData': True, 'DataType': True}
+				filename correct: True
+['LE07_CU_003009_20041001_20170519_C01_V01_QA.tar']
+		LE07_CU_003009_20041001_20170519_C01_V01_SRATMOSOPACITYQA.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				filename correct: True
+		basename correct
+				basename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_RADSATQA.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				filename correct: True
+		md5 match
+				md5 match: True
+		number of files correct
+				number of files correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_SRCLOUDQA.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_PIXELQA.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01.xml
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_LINEAGEQA.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				filename correct: True
+['LE07_CU_003009_20041001_20170519_C01_V01_TA.tar']
+		LE07_CU_003009_20041001_20170519_C01_V01_RADSATQA.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				filename correct: True
+		md5 match
+				md5 match: True
+		LE07_CU_003009_20041001_20170519_C01_V01_SEZ4.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				angle characteristics: {'HasValidPixels': True, 'NoData': True, 'DataType': True}
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_TAB4.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				image characteristics: {'Min': False, 'Max': False, 'HasValidPixels': True, 'NoData': True, 'DataType': True}
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_TAB7.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				image characteristics: {'Min': False, 'Max': False, 'HasValidPixels': True, 'NoData': True, 'DataType': True}
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01.xml
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_LINEAGEQA.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				filename correct: True
+		basename correct
+				basename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_TAB2.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				image characteristics: {'Min': False, 'Max': False, 'HasValidPixels': True, 'NoData': True, 'DataType': True}
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_TAB1.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				image characteristics: {'Min': False, 'Max': False, 'HasValidPixels': True, 'NoData': True, 'DataType': True}
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_TAB3.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				image characteristics: {'Min': False, 'Max': False, 'HasValidPixels': True, 'NoData': True, 'DataType': True}
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_TAB5.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				image characteristics: {'Min': False, 'Max': False, 'HasValidPixels': True, 'NoData': True, 'DataType': True}
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_PIXELQA.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_SOZ4.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				angle characteristics: {'HasValidPixels': True, 'NoData': True, 'DataType': True}
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_SEA4.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				angle characteristics: {'HasValidPixels': True, 'NoData': True, 'DataType': True}
+				filename correct: True
+		LE07_CU_003009_20041001_20170519_C01_V01_SOA4.tif
+				extents correct: {'lrx': True, 'uly': True, 'ulx': True, 'lry': True}
+				projection correct: True
+				angle characteristics: {'HasValidPixels': True, 'NoData': True, 'DataType': True}
+				filename correct: True
+		number of files correct
+				number of files correct: True

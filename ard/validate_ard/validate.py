@@ -32,6 +32,7 @@ Changelog
 1.0     02 AUG 2017     Original development.
 """
 import os
+import sys
 import glob
 import re
 import hashlib
@@ -53,7 +54,39 @@ def map_md5_to_tar(tar_list, md5_list):
     :param md5_list: <list> List of .md5 file name + extensions
     :return: <dict> Where {key=tar, value=md5}
     """
+    def get_basename(files):
+        """
+        Get basename of files (first 40 characters.)
+
+        :param files: <list> List of files.
+        :return: <list> List of base file names.
+        """
+        fo = []
+        for i in files:
+            fo.append(os.path.basename(i)[:40])
+
+        return fo
+
+    # get base file names
+    tf = get_basename(tar_list)
+    mf = get_basename(md5_list)
+
+    # find any differences
+    diffs = set(tf).symmetric_difference(set(mf))
+
+    if diffs:
+        print("Mis-matched .tar and .md5 exist. Non-matched tiles: {0}".
+              format(diffs))
+        print("Please ensure all .tar and .md5 files are present!")
+        sys.exit(1)
+
+    # put all matches in a dictionary
     tar_md5 = {}
+    for t in range(len(tar_list)):
+        tar_md5[tar_list[t]] = md5_list[t]
+
+    '''
+    # VERY slow, but more precise way to determine file matches
     for t in tar_list:
         tm = [i for i, s in enumerate(md5_list) if os.path.splitext(t)[0] in s]
 
@@ -66,6 +99,7 @@ def map_md5_to_tar(tar_list, md5_list):
 
         else:
             print("No md5 found for tar file {0}".format(t))
+    '''
 
     return tar_md5
 

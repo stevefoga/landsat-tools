@@ -28,8 +28,9 @@ The Landsat QA QGIS Toolbox can be installed using the following steps:
 1. Navigate to the QGIS Python plugins directory,
   * Windows, QGIS 2.14.1: C:\Users\YOUR_USERNAME\.qgis2\python\plugins\
 2. In the plugins directory, create directory "landsat-qa-qgis-toolbox",
-3. Extract the contents of the .zip file,
-4. Copy all contents from inside the "src" directory to the "landsat-qa-qgis-toolbox" directory.
+3. Download the .zip file here,
+4. Extract the contents of the .zip file,
+5. Copy all contents from inside the "src" directory to the "landsat-qa-qgis-toolbox" directory.
 
 
 ## Tool: Decode QA

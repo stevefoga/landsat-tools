@@ -5,7 +5,7 @@ This tool color codes bit-packed Landsat Level-1 and Level-2 quality bands. More
 ## Version 0.1 Release Notes
 Release Date: August 2017
 
-See git tag [0.1]
+No git tag associated with this release; only tracked in README.md.
 
 Developed and tested with QGIS Essen 2.14.1, which uses Python 2.7.5. 
 

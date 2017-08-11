@@ -1,0 +1,39 @@
+# This file contains metadata for your plugin. Since 
+# version 2.0 of QGIS this is the proper way to supply 
+# information about a plugin. The old method of 
+# embedding metadata in __init__.py will 
+# is no longer supported since version 2.0.
+
+# This file should be included when you package your plugin.# Mandatory items:
+
+[general]
+name=Landsat QA QGIS Tools
+qgisMinimumVersion=2.0
+description=Decode Landsat QA bands.
+version=0.1
+author=Steve Foga, SGT Inc., Contractor to USGS EROS Center
+email=steven.foga.ctr@usgs.gov
+
+about=Tool to decode bit-packed quality assurance (QA) information from Landsat Level-1 (*BQA.TIF) and Landsat Higher Level (*pixel_qa; *radsat_qa; *sr_cloud_qa; *sr_aerosol) bands. Unlike bit-unpacking tools, this tool does not generate new bands, but instead builds an attribute table from the input and populates each unique value with its respective classification.
+
+tracker=https://github.com/usgs-eros
+repository=https://github.com/usgs-eros
+# End of mandatory metadata
+
+# Recommended items:
+
+# Uncomment the following line and add your changelog:
+# changelog=
+
+# Tags are comma separated with spaces allowed
+tags=landsat,qa
+
+homepage=https://github.com/usgs-eros
+category=Raster
+icon=icon.png
+# experimental flag
+experimental=True
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
+

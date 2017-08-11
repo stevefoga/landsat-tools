@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/LandsatQATools" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>

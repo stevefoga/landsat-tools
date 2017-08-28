@@ -209,7 +209,7 @@ class LandsatQATools:
         # Run the dialog event loop
         result = self.dlg.exec_()
 
-        ## TODO: add logic to auto-detect band and sensor using input_raster
+        # TODO: add logic to auto-detect band and sensor using input_raster
 
         # See if OK was pressed
         if result:
@@ -217,6 +217,7 @@ class LandsatQATools:
             input_raster = str(self.dlg.rasterBox.currentText())
             band = str(self.dlg.bandBox.currentText())
             sensor = str(self.dlg.sensorBox.currentText())
+            rm_low = self.dlg.rmLowBox.isChecked()
 
             # use gdal to get unique values
             ds = gdal.Open(input_raster)
@@ -225,7 +226,8 @@ class LandsatQATools:
             #ds = None
 
             # define lookup table
-            qa_values = lookup_dict.qa_values
+            bit_flags = lookup_dict.bit_flags
+            #qa_values = lookup_dict.qa_values
 
             # convert input_sensor to sensor values used in qa_values
             if sensor == "Landsat 4-5, 7":
@@ -236,6 +238,127 @@ class LandsatQATools:
                 sys.exit("Incorrect sensor provided. Input: {0}; Potential "
                          "options: Landsat 4-5, 7; Landsat 8"
                          .format(sensor))
+
+            # get all possible bit values for sensor and band combination
+            bit_values = sorted(bit_flags[band][sens].values())
+            qa_labels = []
+            for row in values:
+                bit_bool = []
+                for bv in bit_values:
+                    if len(bv) == 1:  # single bit
+                        bit_bool.append(row & 1 << bv[0] > 0)
+
+                    elif len(bv) > 1:  # 2+ bits
+                        bits = []
+                        for b in bv:
+                            bits.append(row & 1 << b > 0)
+                        if all(item == True for item in bits):
+                            bit_bool.append(True)
+                        else:
+                            bit_bool.append(False)
+
+                    else:
+                        sys.exit("No valid bits found for target band.")
+
+                '''
+                NEW logic for getting labels using bit wise dictionary
+                '''
+                # create description of each value based upon all possible bits
+                true_bits = [i for (i, bb) in zip(bit_values, bit_bool) if bb]
+
+                # if double bits exist, eliminate single bit descriptions,
+                #   otherwise, the descriptions will duplicate themselves.
+                bb_double = [len(i) > 1 for i in true_bits]
+                if any(bb_double):
+                    # get only the double bits
+                    dbit_nest = [i for (i, db) in zip(true_bits, bb_double)
+                                 if db]
+
+                    # collapse the bits into a single list
+                    dbits = [item for sublist in dbit_nest for item in sublist]
+
+                    # remove matching single bits out of true_bits list
+                    tbo = []
+                    for t in true_bits:
+                        tb_out = []
+                        for d in dbits:
+                            if t[0] != d or len(t) > 1:
+                                tb_out.append(True)
+                            else:
+                                tb_out.append(False)
+                        if all(tb_out):
+                            tbo.append(t)
+
+                    # replace true_bits with filtered list
+                    true_bits = tbo
+
+                def get_label(bits):
+                    """
+                    Generate label for value in attribute table.
+
+                    :param bits: <list> List of True or False for bit position
+                    :return: <str> Attribute label
+                    """
+                    if len(bits) == 0:
+                        if band == 'radsat_qa':
+                            return 'No Saturation'
+
+                        elif band == 'sr_cloud_qa' or band == 'sr_aerosol':
+                            return 'None'
+
+                        elif band == 'BQA':
+                            return 'Not Determined'
+
+                    # build description from all bits represented in value
+                    desc = []
+                    for tb in bits:
+                        k = next(key for key, value in
+                                 bit_flags[band][sens].items() if value == tb)
+
+                        # if 'low' labels are disabled, do not add them here
+                        if rm_low and band != 'BQA' and 'low' in k.lower():
+                            continue
+
+                        # if last check, and not radiometric sat, set to 'clear'
+                        elif rm_low and band == 'BQA' and 'low' in k.lower() \
+                                and tb == bits[-1] and \
+                                        'radiometric' not in k.lower() and \
+                                not desc:
+                            k = 'Clear'
+
+                        # if BQA and bit is low radiometric sat, keep it
+                        elif rm_low and band == 'BQA' and 'low' in k.lower():
+                            if 'radiometric' not in k.lower():
+                                continue
+
+                        # if radsat_qa, handle differently to display cleaner
+                        if band == 'radsat_qa':
+                            if not desc:
+                                desc = "Band {0} Data Saturation".format(tb[0])
+
+                            else:
+                                desc = "{0},{1} Data Saturation".format(
+                                    desc[:desc.find('Data') - 1], tb[0])
+
+                        # string creation for all other bands
+                        else:
+                            if not desc:
+                                desc = "{0}".format(k)
+
+                            else:
+                                desc += ", {0}".format(k)
+
+                    # final check to make sure something was set
+                    if not desc:
+                        desc = 'ERROR: bit set incorrectly'
+
+                    return desc
+
+                # add desc to row description
+                qa_labels.append(get_label(true_bits))
+
+            '''
+            OLD logic for getting lookup values
 
             # use unique raster values (and sensor+band pair) to get defs
             if band == 'radsat_qa':
@@ -255,6 +378,8 @@ class LandsatQATools:
                              qa_values[band][sens] if i in list(values)}
 
             '''
+
+            '''
             Use gdal.RasterAttributeTable to embed qa values in raster
             '''
             # create table
@@ -270,13 +395,16 @@ class LandsatQATools:
                              gdalconst.GFU_MinMax)
 
             # populate table with contents of 'qa_labels'
-            for v in range(len(qa_labels.keys())):
+            uid = 0
+            for val, lab in zip(values, qa_labels):
+
                 # 'value' column
-                rat.SetValueAsInt(v, rat_cc, qa_labels.keys()[v])
+                rat.SetValueAsInt(uid, rat_cc, int(val))
 
                 # 'descr' column
-                rat.SetValueAsString(v, rat_cc + 1,
-                                     qa_labels[qa_labels.keys()[v]])
+                rat.SetValueAsString(uid, rat_cc + 1, lab)
+
+                uid += 1
 
             # set raster attribute table to raster
             rb.SetDefaultRAT(rat)
@@ -324,12 +452,12 @@ class LandsatQATools:
 
             # assign a random color to each value, and apply label
             c_ramp_vals = []
-            for v in qa_labels.keys():
+            for val, lab in zip(values, qa_labels):
                 c_ramp_vals.append(QgsColorRampShader.
                                    ColorRampItem(
-                    float(v),
+                    float(val),
                     QColor('#%06x' % randint(0, 2 ** 24)),
-                    qa_labels[v]))
+                    lab))
 
             # apply new color/label combo to color ramps
             c_ramp_shader.setColorRampItemList(c_ramp_vals)

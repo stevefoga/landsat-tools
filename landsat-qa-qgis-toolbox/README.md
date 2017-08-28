@@ -14,8 +14,8 @@ Developed and tested with QGIS Essen 2.14.1, which uses Python 2.7.5.
 
 ### TO-DO
 * QGIS [does not support Raster Attribute Tables](https://issues.qgis.org/issues/4321), so the tool simply color-codes and re-names each category, but does not make them accessible for analysis. This is potentially useful for mapping and quick visualization.
-  * If Raster Attribute Table support becomes available, some preliminary source code is provided, but commented out in [decode_qa.py](./src/decode_qa.py).
-* Code could be simplified if qa_values variable is removed from [lookup_dict.py](./src/lookup_dict.py) and replaced with bit flags.
+  * If Raster Attribute Table support becomes available, methodology needs revision in [decode_qa.py](./src/decode_qa.py).
+* ~~Code could be simplified if qa_values variable is removed from [lookup_dict.py](./src/lookup_dict.py) and replaced with bit flags.~~ DONE 28 Aug 2017.
 * Tool should ideally have functionality to unpack bands, and optionally combine into a binary raster.
 * Tool should automatically populate input interface with sensor and band, based on input band name.
 * Tool needs an icon besides the QGIS default.

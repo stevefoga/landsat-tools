@@ -179,6 +179,19 @@
      </rect>
     </property>
    </widget>
+   <widget class="QCheckBox" name="rmLowBox">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>200</y>
+      <width>161</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Remove low labels (optional)</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>

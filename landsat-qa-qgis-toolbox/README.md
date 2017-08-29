@@ -22,7 +22,7 @@ Developed and tested with QGIS Essen 2.14.1, which uses Python 2.7.5.
 * General code cleanup needed once complete.
 * Documentation needs re-worked to be compliant with standards of host institution.
  
-* (Optional) Include any other features included in (Landsat QA ArcGIS Toolbox)[https://github.com/USGS-EROS/landsat-qa-arcgis-toolbox].
+* (Optional) Include any other features included in [Landsat QA ArcGIS Toolbox](https://github.com/USGS-EROS/landsat-qa-arcgis-toolbox).
 
 
 ## Installation
